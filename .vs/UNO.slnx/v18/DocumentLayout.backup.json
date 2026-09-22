@@ -1,0 +1,44 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Programas\\UNO\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|c:\\users\\iker alejandro\\documents\\isi\\5to (2026 - 2027)i\\interfaces graficas con aplicaciones\\programas\\uno\\uno\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|solutionrelative:uno\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Form1.cs [Dise\u00F1o]",
+              "DocumentMoniker": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Programas\\UNO\\UNO\\Form1.cs",
+              "RelativeDocumentMoniker": "UNO\\Form1.cs",
+              "ToolTip": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Programas\\UNO\\UNO\\Form1.cs [Dise\u00F1o]",
+              "RelativeToolTip": "UNO\\Form1.cs [Dise\u00F1o]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-21T22:38:03.304Z",
+              "EditorCaption": " [Dise\u00F1o]"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
