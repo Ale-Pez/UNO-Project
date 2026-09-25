@@ -38,4 +38,34 @@ public class Carta
 		this.tipo = tipo;
 		this.numero = numero;
 	}
+
+	public ColorCarta getColor()
+	{
+		return color;
+	}
+
+	public TipoCarta getTipo()
+	{
+		return tipo;
+	}
+
+	public int getNumero()
+	{
+		return numero;
+	}
+
+	public void setColor(ColorCarta color)
+	{
+		this.color = color;
+	}
+
+	public void setTipo(TipoCarta tipo)
+	{
+		this.tipo = tipo;
+	}
+
+	public void setNumero(int numero)
+	{
+		this.numero = numero;
+	}
 }
