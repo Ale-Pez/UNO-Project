@@ -1,8 +1,41 @@
 ﻿using System;
 
-public class Class1
+public enum ColorCarta
 {
-	public Class1()
+	ROJO,
+	AMARILLO,
+	VERDE,
+	AZUL,
+	ESPECIAL
+}
+
+public enum TipoCarta
+{
+	NUMERO,
+	BLOQUEA,
+	REVERSA,
+	MASDOS,
+	MASCUATRO,
+	COMODIN
+}
+
+public class Carta
+{
+	private ColorCarta color;
+	private TipoCarta tipo;
+	private int numero;
+
+	public Carta(ColorCarta color, TipoCarta tipo)
 	{
+        this.color = color;
+        this.tipo = tipo;
+        this.numero = -1;
+    }
+
+	public Carta(ColorCarta color, TipoCarta tipo, int numero)
+	{
+		this.color = color;
+		this.tipo = tipo;
+		this.numero = numero;
 	}
 }
