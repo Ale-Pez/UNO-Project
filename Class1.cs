@@ -34,8 +34,21 @@ public class Carta
 
 	public Carta(ColorCarta color, TipoCarta tipo, int numero)
 	{
+		if (numero < 0 || numero > 9))
+        {
+			throw new ArgumentException("Una carta numérica debe tener un valor entre 0 y 9.\n");
+		}
+
 		this.color = color;
 		this.tipo = tipo;
+
+		if (tipo != TipoCarta.NUMERO)
+		{
+			Console.WriteLine($"ADVERTENCIA: Seleccionaste una carta de un tipo distinto a NUMERO. Se creara una del tipo {tipo} en su lugar.\n");
+			this.numero = -1;
+			return;
+		}
+		
 		this.numero = numero;
 	}
 
@@ -66,6 +79,13 @@ public class Carta
 
 	public void setNumero(int numero)
 	{
-		this.numero = numero;
+        if (tipo != TipoCarta.NUMERO)
+        {
+            throw new ArgumentException($"Una carta del tipo {tipo} no puede tener valores numéricos.\n");
+        } else if (numero < 0 || numero > 9)
+        {
+            throw new ArgumentException("Una carta numérica debe tener un valor entre 0 y 9.\n");
+        }
+        this.numero = numero;
 	}
 }

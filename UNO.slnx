@@ -1,3 +1,6 @@
 <Solution>
+  <Folder Name="/Elementos de la solución/">
+    <File Path="Class1.cs" />
+  </Folder>
   <Project Path="UNO/UNO.csproj" Id="28d2f21e-ef88-40ea-9408-9eaea7dc1770" />
 </Solution>
