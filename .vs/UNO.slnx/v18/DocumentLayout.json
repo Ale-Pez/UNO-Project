@@ -1,10 +1,22 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Programas\\UNO\\",
+  "WorkspaceRootPath": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|c:\\users\\iker alejandro\\documents\\isi\\5to (2026 - 2027)i\\interfaces graficas con aplicaciones\\programas\\uno\\uno\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|c:\\users\\iker alejandro\\documents\\isi\\5to (2026 - 2027)i\\interfaces graficas con aplicaciones\\proyecto uno\\uno\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|solutionrelative:uno\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|c:\\users\\iker alejandro\\documents\\isi\\5to (2026 - 2027)i\\interfaces graficas con aplicaciones\\proyecto uno\\uno\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|solutionrelative:uno\\form1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|c:\\users\\iker alejandro\\documents\\isi\\5to (2026 - 2027)i\\interfaces graficas con aplicaciones\\proyecto uno\\uno\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|solutionrelative:uno\\form1.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|c:\\users\\iker alejandro\\documents\\isi\\5to (2026 - 2027)i\\interfaces graficas con aplicaciones\\proyecto uno\\uno\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{28D2F21E-EF88-40EA-9408-9EAEA7DC1770}|UNO\\UNO.csproj|solutionrelative:uno\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,7 +26,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -26,11 +38,50 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Form1.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\UNO\\Form1.Designer.cs",
+              "RelativeDocumentMoniker": "UNO\\Form1.Designer.cs",
+              "ToolTip": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\UNO\\Form1.Designer.cs",
+              "RelativeToolTip": "UNO\\Form1.Designer.cs",
+              "ViewState": "AgIAAI0AAAAAkJmZmZkawK0AAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T20:52:39.201Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\UNO\\Program.cs",
+              "RelativeDocumentMoniker": "UNO\\Program.cs",
+              "ToolTip": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\UNO\\Program.cs",
+              "RelativeToolTip": "UNO\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T20:52:29.254Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Form1.cs",
+              "DocumentMoniker": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\UNO\\Form1.cs",
+              "RelativeDocumentMoniker": "UNO\\Form1.cs",
+              "ToolTip": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\UNO\\Form1.cs",
+              "RelativeToolTip": "UNO\\Form1.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAjwBEAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T20:52:10.644Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Form1.cs [Dise\u00F1o]",
-              "DocumentMoniker": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Programas\\UNO\\UNO\\Form1.cs",
+              "DocumentMoniker": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\UNO\\Form1.cs",
               "RelativeDocumentMoniker": "UNO\\Form1.cs",
-              "ToolTip": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Programas\\UNO\\UNO\\Form1.cs [Dise\u00F1o]",
+              "ToolTip": "C:\\Users\\Iker Alejandro\\Documents\\ISI\\5to (2026 - 2027)I\\Interfaces Graficas con Aplicaciones\\Proyecto UNO\\UNO\\Form1.cs [Dise\u00F1o]",
               "RelativeToolTip": "UNO\\Form1.cs [Dise\u00F1o]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-21T22:38:03.304Z",
