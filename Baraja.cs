@@ -91,5 +91,19 @@ public class Baraja
             cartas.Add(new Carta(ColorCarta.ESPECIAL, TipoCarta.COMODIN));
             cartas.Add(new Carta(ColorCarta.ESPECIAL, TipoCarta.MASCUATRO));
         }
+
+        public void Barajar()
+        {
+            Random random = new Random();
+
+            for (int i = cartas.Count - 1; i > 0; i--)
+            {
+                int posicion = random.Next(i + 1);
+
+                Carta temporal = cartas[i];
+                cartas[i] = cartas[posicion];
+                cartas[posicion] = temporal;
+            }
+        }
     }
 }
