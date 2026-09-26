@@ -79,7 +79,8 @@
             // 
             // cartas_jugador1
             // 
-            this.cartas_jugador1.Location = new System.Drawing.Point(200, 19);
+            this.cartas_jugador1.AutoScroll = true;
+            this.cartas_jugador1.Location = new System.Drawing.Point(200, 6);
             this.cartas_jugador1.Name = "cartas_jugador1";
             this.cartas_jugador1.Size = new System.Drawing.Size(400, 69);
             this.cartas_jugador1.TabIndex = 0;
@@ -109,7 +110,7 @@
             // 
             this.cartas_jugador3.Location = new System.Drawing.Point(22, 34);
             this.cartas_jugador3.Name = "cartas_jugador3";
-            this.cartas_jugador3.Size = new System.Drawing.Size(123, 316);
+            this.cartas_jugador3.Size = new System.Drawing.Size(123, 298);
             this.cartas_jugador3.TabIndex = 1;
             // 
             // panel4
@@ -137,7 +138,7 @@
             // 
             this.cartas_jugador2.Location = new System.Drawing.Point(53, 34);
             this.cartas_jugador2.Name = "cartas_jugador2";
-            this.cartas_jugador2.Size = new System.Drawing.Size(123, 316);
+            this.cartas_jugador2.Size = new System.Drawing.Size(123, 298);
             this.cartas_jugador2.TabIndex = 0;
             // 
             // panel3
@@ -212,10 +213,9 @@
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
-            this.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Name = "Form1";
             this.Text = "UNO";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.panel1.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
