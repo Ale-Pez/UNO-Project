@@ -84,26 +84,37 @@ public class Baraja
 
         cartas.Add(new Carta(ColorCarta.AZUL, TipoCarta.MASDOS));
         cartas.Add(new Carta(ColorCarta.AZUL, TipoCarta.MASDOS);
-        
+
         // ESPECIALES
         for (int i = 0; i < 4; i++)
         {
             cartas.Add(new Carta(ColorCarta.ESPECIAL, TipoCarta.COMODIN));
             cartas.Add(new Carta(ColorCarta.ESPECIAL, TipoCarta.MASCUATRO));
         }
+    }
+    
+    public void Barajar()
+    {
+        Random random = new Random();
 
-        public void Barajar()
+        for (int i = cartas.Count - 1; i > 0; i--)
         {
-            Random random = new Random();
+            int posicion = random.Next(i + 1);
 
-            for (int i = cartas.Count - 1; i > 0; i--)
-            {
-                int posicion = random.Next(i + 1);
-
-                Carta temporal = cartas[i];
-                cartas[i] = cartas[posicion];
-                cartas[posicion] = temporal;
-            }
+            Carta temporal = cartas[i];
+            cartas[i] = cartas[posicion];
+            cartas[posicion] = temporal;
         }
+    }
+    
+    public Carta RobarCarta()
+    {
+        if (cartas.Count == 0)
+            return null;
+
+        Carta carta = cartas[0];
+        cartas.RemoveAt(0);
+
+        return carta;
     }
 }
