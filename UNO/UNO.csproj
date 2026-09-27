@@ -90,5 +90,61 @@
   <ItemGroup>
     <None Include="Resources\background.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\blue_0.png" />
+    <None Include="Resources\blue_1.png" />
+    <None Include="Resources\blue_2.png" />
+    <None Include="Resources\blue_3.png" />
+    <None Include="Resources\blue_4.png" />
+    <None Include="Resources\blue_5.png" />
+    <None Include="Resources\blue_6.png" />
+    <None Include="Resources\blue_7.png" />
+    <None Include="Resources\blue_8.png" />
+    <None Include="Resources\blue_9.png" />
+    <None Include="Resources\blue_block.png" />
+    <None Include="Resources\blue_plus.png" />
+    <None Include="Resources\blue_switch.png" />
+    <None Include="Resources\green_0.png" />
+    <None Include="Resources\green_1.png" />
+    <None Include="Resources\green_2.png" />
+    <None Include="Resources\green_3.png" />
+    <None Include="Resources\green_4.png" />
+    <None Include="Resources\green_5.png" />
+    <None Include="Resources\green_6.png" />
+    <None Include="Resources\green_7.png" />
+    <None Include="Resources\green_8.png" />
+    <None Include="Resources\green_9.png" />
+    <None Include="Resources\green_block.png" />
+    <None Include="Resources\green_plus.png" />
+    <None Include="Resources\green_switch.png" />
+    <None Include="Resources\red_0.png" />
+    <None Include="Resources\red_1.png" />
+    <None Include="Resources\red_2.png" />
+    <None Include="Resources\red_3.png" />
+    <None Include="Resources\red_4.png" />
+    <None Include="Resources\red_5.png" />
+    <None Include="Resources\red_6.png" />
+    <None Include="Resources\red_7.png" />
+    <None Include="Resources\red_8.png" />
+    <None Include="Resources\red_9.png" />
+    <None Include="Resources\red_block.png" />
+    <None Include="Resources\red_plus.png" />
+    <None Include="Resources\red_switch.png" />
+    <None Include="Resources\wildcard_plus4.png" />
+    <None Include="Resources\wildcard_uno.png" />
+    <None Include="Resources\yellow_0.png" />
+    <None Include="Resources\yellow_1.png" />
+    <None Include="Resources\yellow_2.png" />
+    <None Include="Resources\yellow_3.png" />
+    <None Include="Resources\yellow_4.png" />
+    <None Include="Resources\yellow_5.png" />
+    <None Include="Resources\yellow_6.png" />
+    <None Include="Resources\yellow_7.png" />
+    <None Include="Resources\yellow_8.png" />
+    <None Include="Resources\yellow_9.png" />
+    <None Include="Resources\yellow_block.png" />
+    <None Include="Resources\yellow_plus.png" />
+    <None Include="Resources\yellow_switch.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
