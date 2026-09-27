@@ -60,7 +60,7 @@
             this.panel1.BackColor = System.Drawing.Color.Transparent;
             this.panel1.Controls.Add(this.groupBox1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 421);
+            this.panel1.Location = new System.Drawing.Point(0, 621);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(884, 140);
             this.panel1.TabIndex = 0;
@@ -95,7 +95,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel2.Location = new System.Drawing.Point(734, 0);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(150, 421);
+            this.panel2.Size = new System.Drawing.Size(150, 621);
             this.panel2.TabIndex = 1;
             // 
             // groupBox2
@@ -106,7 +106,7 @@
             this.groupBox2.ForeColor = System.Drawing.SystemColors.Control;
             this.groupBox2.Location = new System.Drawing.Point(0, 0);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(150, 421);
+            this.groupBox2.Size = new System.Drawing.Size(150, 621);
             this.groupBox2.TabIndex = 0;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Jugador 2";
@@ -118,7 +118,7 @@
             this.cartas_jugador2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.cartas_jugador2.Location = new System.Drawing.Point(3, 23);
             this.cartas_jugador2.Name = "cartas_jugador2";
-            this.cartas_jugador2.Size = new System.Drawing.Size(144, 395);
+            this.cartas_jugador2.Size = new System.Drawing.Size(144, 595);
             this.cartas_jugador2.TabIndex = 0;
             this.cartas_jugador2.WrapContents = false;
             // 
@@ -129,7 +129,7 @@
             this.panel3.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel3.Location = new System.Drawing.Point(0, 0);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(150, 421);
+            this.panel3.Size = new System.Drawing.Size(150, 621);
             this.panel3.TabIndex = 2;
             // 
             // groupBox3
@@ -140,7 +140,7 @@
             this.groupBox3.ForeColor = System.Drawing.SystemColors.Control;
             this.groupBox3.Location = new System.Drawing.Point(0, 0);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(150, 421);
+            this.groupBox3.Size = new System.Drawing.Size(150, 621);
             this.groupBox3.TabIndex = 0;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Jugador 3";
@@ -152,7 +152,7 @@
             this.cartas_jugador3.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.cartas_jugador3.Location = new System.Drawing.Point(3, 23);
             this.cartas_jugador3.Name = "cartas_jugador3";
-            this.cartas_jugador3.Size = new System.Drawing.Size(144, 395);
+            this.cartas_jugador3.Size = new System.Drawing.Size(144, 595);
             this.cartas_jugador3.TabIndex = 0;
             this.cartas_jugador3.WrapContents = false;
             // 
@@ -163,7 +163,7 @@
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel4.Location = new System.Drawing.Point(150, 0);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(584, 421);
+            this.panel4.Size = new System.Drawing.Size(584, 621);
             this.panel4.TabIndex = 3;
             // 
             // groupBox4
@@ -176,7 +176,7 @@
             this.groupBox4.ForeColor = System.Drawing.SystemColors.Control;
             this.groupBox4.Location = new System.Drawing.Point(0, 0);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(584, 421);
+            this.groupBox4.Size = new System.Drawing.Size(584, 621);
             this.groupBox4.TabIndex = 0;
             this.groupBox4.TabStop = false;
             // 
@@ -227,13 +227,13 @@
             this.BackColor = System.Drawing.SystemColors.Control;
             this.BackgroundImage = global::UNO.Properties.Resources.background;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.ClientSize = new System.Drawing.Size(884, 561);
+            this.ClientSize = new System.Drawing.Size(884, 761);
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Cursor = System.Windows.Forms.Cursors.Default;
-            this.MinimumSize = new System.Drawing.Size(900, 600);
+            this.MinimumSize = new System.Drawing.Size(900, 800);
             this.Name = "Form1";
             this.Text = "UNO";
             this.panel1.ResumeLayout(false);

@@ -13,12 +13,14 @@ namespace UNO
     public partial class Form1 : Form
     {
         private Baraja baraja;
+        private List<Carta> cartas_en_pila;
 
         public Form1()
         {
             InitializeComponent();
             baraja = new Baraja();
             baraja.Barajar();
+            cartas_en_pila = new List<Carta>();
             Repartir_Cartas();
         }
 
@@ -67,6 +69,15 @@ namespace UNO
 
                 cartas_jugador3.Controls.Add(reverso);
             }
+
+            Carta inicial = baraja.Robar_Carta();
+
+            pila_cartas.Image = Properties.Resources.back_uno;
+            pila_cartas.SizeMode = PictureBoxSizeMode.StretchImage;
+            pila_cartas.Width = 70;
+            pila_cartas.Height = 100;
+
+            cartas_en_pila.Add(inicial);
         }
     }
 }
