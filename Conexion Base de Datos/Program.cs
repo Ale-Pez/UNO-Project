@@ -12,7 +12,7 @@ namespace mysql
     {
         static void Main(string[] args)
         {
-            string connStr = "Server=127.0.0.1;Port=3306;Database=juego_uno;Uid=root;Pwd=M1234";
+            string connStr = "Server=127.0.0.1;Port=3306;Database=juego_uno;Uid=root;Pwd=------";
 
             try
             {
