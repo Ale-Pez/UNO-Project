@@ -39,10 +39,10 @@
             this.cartas_jugador3 = new System.Windows.Forms.FlowLayoutPanel();
             this.panel4 = new System.Windows.Forms.Panel();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.mazo_cartas = new System.Windows.Forms.PictureBox();
-            this.pila_cartas = new System.Windows.Forms.PictureBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.pila_cartas = new System.Windows.Forms.PictureBox();
+            this.mazo_cartas = new System.Windows.Forms.PictureBox();
             this.panel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -51,8 +51,8 @@
             this.groupBox3.SuspendLayout();
             this.panel4.SuspendLayout();
             this.groupBox4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.mazo_cartas)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.mazo_cartas)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -60,7 +60,7 @@
             this.panel1.BackColor = System.Drawing.Color.Transparent;
             this.panel1.Controls.Add(this.groupBox1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(0, 441);
+            this.panel1.Location = new System.Drawing.Point(0, 421);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(884, 140);
             this.panel1.TabIndex = 0;
@@ -115,6 +115,7 @@
             // 
             this.cartas_jugador2.AutoScroll = true;
             this.cartas_jugador2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.cartas_jugador2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.cartas_jugador2.Location = new System.Drawing.Point(3, 23);
             this.cartas_jugador2.Name = "cartas_jugador2";
             this.cartas_jugador2.Size = new System.Drawing.Size(144, 395);
@@ -148,6 +149,7 @@
             // 
             this.cartas_jugador3.AutoScroll = true;
             this.cartas_jugador3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.cartas_jugador3.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.cartas_jugador3.Location = new System.Drawing.Point(3, 23);
             this.cartas_jugador3.Name = "cartas_jugador3";
             this.cartas_jugador3.Size = new System.Drawing.Size(144, 395);
@@ -178,25 +180,15 @@
             this.groupBox4.TabIndex = 0;
             this.groupBox4.TabStop = false;
             // 
-            // mazo_cartas
+            // label2
             // 
-            this.mazo_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
-            this.mazo_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.mazo_cartas.Location = new System.Drawing.Point(87, 96);
-            this.mazo_cartas.Name = "mazo_cartas";
-            this.mazo_cartas.Size = new System.Drawing.Size(70, 100);
-            this.mazo_cartas.TabIndex = 0;
-            this.mazo_cartas.TabStop = false;
-            // 
-            // pila_cartas
-            // 
-            this.pila_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
-            this.pila_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.pila_cartas.Location = new System.Drawing.Point(258, 178);
-            this.pila_cartas.Name = "pila_cartas";
-            this.pila_cartas.Size = new System.Drawing.Size(70, 100);
-            this.pila_cartas.TabIndex = 1;
-            this.pila_cartas.TabStop = false;
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Nirmala UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(243, 155);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(101, 20);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Pila de cartas";
             // 
             // label1
             // 
@@ -208,15 +200,25 @@
             this.label1.TabIndex = 2;
             this.label1.Text = "Mazo";
             // 
-            // label2
+            // pila_cartas
             // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Nirmala UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(243, 155);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(101, 20);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Pila de cartas";
+            this.pila_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
+            this.pila_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pila_cartas.Location = new System.Drawing.Point(258, 178);
+            this.pila_cartas.Name = "pila_cartas";
+            this.pila_cartas.Size = new System.Drawing.Size(70, 100);
+            this.pila_cartas.TabIndex = 1;
+            this.pila_cartas.TabStop = false;
+            // 
+            // mazo_cartas
+            // 
+            this.mazo_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
+            this.mazo_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.mazo_cartas.Location = new System.Drawing.Point(87, 96);
+            this.mazo_cartas.Name = "mazo_cartas";
+            this.mazo_cartas.Size = new System.Drawing.Size(70, 100);
+            this.mazo_cartas.TabIndex = 0;
+            this.mazo_cartas.TabStop = false;
             // 
             // Form1
             // 
@@ -243,8 +245,8 @@
             this.panel4.ResumeLayout(false);
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.mazo_cartas)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.mazo_cartas)).EndInit();
             this.ResumeLayout(false);
 
         }
