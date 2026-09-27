@@ -31,8 +31,8 @@ namespace UNO
                 PictureBox reverso = new PictureBox();
                 reverso.Image = Properties.Resources.back_uno;
                 reverso.SizeMode = PictureBoxSizeMode.StretchImage;
-                reverso.Width = 80;
-                reverso.Height = 120;
+                reverso.Width = 70;
+                reverso.Height = 100;
 
                 cartas_jugador1.Controls.Add(reverso);
             }
