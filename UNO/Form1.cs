@@ -15,12 +15,20 @@ namespace UNO
         private Baraja baraja;
         private List<Carta> cartas_en_pila;
 
+        private Jugador jugador1;
+        private Jugador jugador2;
+        private Jugador jugador3;
         public Form1()
         {
             InitializeComponent();
             baraja = new Baraja();
             baraja.Barajar();
             cartas_en_pila = new List<Carta>();
+            //inicializa a jugadores
+            jugador1 = new Jugador("Jugador 1");
+            jugador2 = new Jugador("Jugador 2");
+            jugador3 = new Jugador("Jugador 3");
+
             Repartir_Cartas();
         }
 
@@ -30,6 +38,7 @@ namespace UNO
             for (int i = 0; i < 7; i++)
             {
                 Carta carta = baraja.Robar_Carta();
+                jugador1.RecibirCarta(carta);
 
                 PictureBox reverso = Obtener_Imagen_Carta(carta);
                 reverso.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -43,6 +52,7 @@ namespace UNO
             for (int i = 0; i < 7; i++)
             {
                 Carta carta = baraja.Robar_Carta();
+                jugador2.RecibirCarta(carta);
 
                 PictureBox reverso = Obtener_Imagen_Carta(carta);;
                 reverso.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
@@ -57,6 +67,7 @@ namespace UNO
             for (int i = 0; i < 7; i++)
             {
                 Carta carta = baraja.Robar_Carta();
+                jugador3.RecibirCarta(carta);
 
                 PictureBox reverso = Obtener_Imagen_Carta(carta);
                 reverso.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
