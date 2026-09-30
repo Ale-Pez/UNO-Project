@@ -8,10 +8,10 @@ public class Baraja
     public Baraja()
     {
         cartas = new List<Carta>();
-        Inicializar();
+        Inicializar_Cartas();
     }
 
-    private void Inicializar()
+    private void Inicializar_Cartas()
     {
         // ROJAS
         cartas.Add(new Carta(ColorCarta.ROJO, TipoCarta.NUMERO, 0));
