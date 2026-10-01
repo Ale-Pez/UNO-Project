@@ -16,7 +16,9 @@ namespace UNO
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+
+            // El programa arranca abriendo Form2 (el menú que gestiona los 3 registros)
+            Application.Run(new Form2());
         }
     }
 }

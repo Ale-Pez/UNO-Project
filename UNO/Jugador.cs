@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace UNO
 {
+
     public class Jugador
     {
         private string nombre;
@@ -44,3 +45,7 @@ namespace UNO
         }
     }
 }
+
+
+
+

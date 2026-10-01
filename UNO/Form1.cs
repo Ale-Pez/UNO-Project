@@ -1,4 +1,5 @@
-﻿using System;
+﻿using UNO;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,21 +15,29 @@ namespace UNO
     {
         private Baraja baraja;
         private List<Carta> cartas_en_pila;
-
         private Jugador jugador1;
         private Jugador jugador2;
         private Jugador jugador3;
-        public Form1()
+        public Form1(string n1, string n2, string n3)
         {
+
             InitializeComponent();
+
             baraja = new Baraja();
             baraja.Barajar();
             cartas_en_pila = new List<Carta>();
-            //inicializa a jugadores
-            jugador1 = new Jugador("Jugador 1");
-            jugador2 = new Jugador("Jugador 2");
-            jugador3 = new Jugador("Jugador 3");
 
+            //inicializar a los jugadores con los nombres que pusieron en el registro
+            jugador1 = new Jugador(n1);
+            jugador2 = new Jugador(n2);
+            jugador3 = new Jugador(n3);
+
+            //modificamos el Text de los GroupBox para que muestren el nombre de cada usuario
+            groupBox1.Text = n1;
+            groupBox2.Text = n2;
+            groupBox3.Text = n3;
+
+            //repartimos las cartas en el tablero
             Repartir_Cartas();
         }
 
@@ -54,7 +63,7 @@ namespace UNO
                 Carta carta = baraja.Robar_Carta();
                 jugador2.RecibirCarta(carta);
 
-                PictureBox reverso = Obtener_Imagen_Carta(carta);;
+                PictureBox reverso = Obtener_Imagen_Carta(carta); ;
                 reverso.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
                 reverso.SizeMode = PictureBoxSizeMode.StretchImage;
                 reverso.Width = 100;
@@ -142,6 +151,16 @@ namespace UNO
             }
 
             return imagen_carta;
+        }
+
+        private void groupBox3_Enter(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void groupBox2_Enter(object sender, EventArgs e)
+        {
+
         }
     }
 }
