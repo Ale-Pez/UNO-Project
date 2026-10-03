@@ -18,6 +18,9 @@ namespace UNO
         private Jugador jugador1;
         private Jugador jugador2;
         private Jugador jugador3;
+        private int turnoActual = 1; //jug 1 = 1, jug 2 = 2, ....
+        private int direccionJuego = 1; // direccion normal 1 y para cuando va en reversa -1
+
         public Form1(string n1, string n2, string n3)
         {
 
@@ -39,6 +42,7 @@ namespace UNO
 
             //repartimos las cartas en el tablero
             Repartir_Cartas();
+            
         }
 
         private void Repartir_Cartas()
@@ -97,6 +101,60 @@ namespace UNO
             cartas_en_pila.Add(inicial);
         }
 
+        // logica de los turnos
+
+        private void ActualizaTurnoLabel()
+        {
+            if (turnoActual == 1) lblTurno.Text = $"Turno de: {jugador1.GetNombre()}";
+            else if (turnoActual == 2) lblTurno.Text = $"Turno de: {jugador2.GetNombre()}";
+            else if (turnoActual == 3) lblTurno.Text = $"Turno de: {jugador3.GetNombre()}";
+        }
+
+        private bool EsJugadaValida(Carta cartaJugada, Carta cartaEnPila)
+        {
+            //los comodines y mas cuatro siempre se pueden tirar
+            if (cartaJugada.getTipo() == TipoCarta.COMODIN || cartaJugada.getTipo() == TipoCarta.MASCUATRO)
+            {
+                return true;
+            }
+
+            //coincide el color
+            if (cartaJugada.getColor() == cartaEnPila.getColor())
+            {
+                return true;
+            }
+
+            // si son de tipo numero y coincide con la ultima tirada
+            if (cartaJugada.getTipo() == TipoCarta.NUMERO && cartaEnPila.getTipo() == TipoCarta.NUMERO && cartaJugada.getNumero() == cartaEnPila.getNumero())
+            {
+                return true;
+            }
+
+            // si coincide el tipo de carta especial 
+            if (cartaJugada.getTipo() == cartaEnPila.getTipo() && cartaJugada.getTipo() != TipoCarta.NUMERO)
+            {
+                return true;
+            }
+
+            return false; // si no cumple ninguna es invalida
+        }
+
+       
+
+        private void AvanzarTurno()
+        {
+            turnoActual += direccionJuego;
+
+            
+            if (turnoActual > 3) turnoActual = 1;
+            if (turnoActual < 1) turnoActual = 3;
+
+            ActualizaTurnoLabel();
+        }
+
+        
+
+
         private PictureBox Obtener_Imagen_Carta(Carta carta)
         {
             PictureBox imagen_carta = new PictureBox();
@@ -154,13 +212,14 @@ namespace UNO
         }
 
         private void groupBox3_Enter(object sender, EventArgs e)
-        {
-           
-        }
+        {}
 
         private void groupBox2_Enter(object sender, EventArgs e)
-        {
+        {}
 
+        private void groupBox4_Enter(object sender, EventArgs e)
+        {
+        
         }
     }
 }

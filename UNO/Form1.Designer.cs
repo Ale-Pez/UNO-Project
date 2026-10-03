@@ -43,6 +43,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.pila_cartas = new System.Windows.Forms.PictureBox();
             this.mazo_cartas = new System.Windows.Forms.PictureBox();
+            this.lblTurno = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -183,6 +184,7 @@
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.lblTurno);
             this.groupBox4.Controls.Add(this.label2);
             this.groupBox4.Controls.Add(this.label1);
             this.groupBox4.Controls.Add(this.pila_cartas);
@@ -196,6 +198,7 @@
             this.groupBox4.Size = new System.Drawing.Size(779, 765);
             this.groupBox4.TabIndex = 0;
             this.groupBox4.TabStop = false;
+            this.groupBox4.Enter += new System.EventHandler(this.groupBox4_Enter);
             // 
             // label2
             // 
@@ -240,6 +243,17 @@
             this.mazo_cartas.Size = new System.Drawing.Size(93, 123);
             this.mazo_cartas.TabIndex = 0;
             this.mazo_cartas.TabStop = false;
+            // 
+            // lblTurno
+            // 
+            this.lblTurno.AutoSize = true;
+            this.lblTurno.BackColor = System.Drawing.Color.Transparent;
+            this.lblTurno.Font = new System.Drawing.Font("Segoe UI Symbol", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTurno.Location = new System.Drawing.Point(233, 29);
+            this.lblTurno.Name = "lblTurno";
+            this.lblTurno.Size = new System.Drawing.Size(79, 28);
+            this.lblTurno.TabIndex = 4;
+            this.lblTurno.Text = "Turno: ";
             // 
             // Form1
             // 
@@ -290,6 +304,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.PictureBox pila_cartas;
         private System.Windows.Forms.PictureBox mazo_cartas;
+        private System.Windows.Forms.Label lblTurno;
     }
 }
 
