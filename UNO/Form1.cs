@@ -42,6 +42,7 @@ namespace UNO
 
             //repartimos las cartas en el tablero
             Repartir_Cartas();
+            ActualizaTurnoLabel();
             
         }
 
@@ -58,6 +59,8 @@ namespace UNO
                 reverso.Width = 70;
                 reverso.Height = 100;
 
+                reverso.Tag = carta;
+                reverso.Click += new EventHandler(Carta_Click);
                 cartas_jugador1.Controls.Add(reverso);
             }
 
@@ -72,6 +75,9 @@ namespace UNO
                 reverso.SizeMode = PictureBoxSizeMode.StretchImage;
                 reverso.Width = 100;
                 reverso.Height = 70;
+
+                reverso.Tag = carta;
+                reverso.Click += new EventHandler(Carta_Click);
 
                 cartas_jugador2.Controls.Add(reverso);
             }
@@ -88,6 +94,8 @@ namespace UNO
                 reverso.Width = 100;
                 reverso.Height = 70;
 
+                reverso.Tag = carta;
+                reverso.Click += new EventHandler(Carta_Click);
                 cartas_jugador3.Controls.Add(reverso);
             }
 
@@ -108,6 +116,17 @@ namespace UNO
             if (turnoActual == 1) lblTurno.Text = $"Turno de: {jugador1.GetNombre()}";
             else if (turnoActual == 2) lblTurno.Text = $"Turno de: {jugador2.GetNombre()}";
             else if (turnoActual == 3) lblTurno.Text = $"Turno de: {jugador3.GetNombre()}";
+        }
+
+        private void AvanzarTurno()
+        {
+            turnoActual += direccionJuego;
+
+
+            if (turnoActual > 3) turnoActual = 1;
+            if (turnoActual < 1) turnoActual = 3;
+
+            ActualizaTurnoLabel();
         }
 
         private bool EsJugadaValida(Carta cartaJugada, Carta cartaEnPila)
@@ -139,22 +158,171 @@ namespace UNO
             return false; // si no cumple ninguna es invalida
         }
 
-       
-
-        private void AvanzarTurno()
+        private void AplicarEfectoCarta(Carta cartaJugada)
         {
-            turnoActual += direccionJuego;
+            switch (cartaJugada.getTipo())
+            {
 
-            
-            if (turnoActual > 3) turnoActual = 1;
-            if (turnoActual < 1) turnoActual = 3;
+                case TipoCarta.REVERSA:
+                    direccionJuego *= -1;
+                    AvanzarTurno();
+                    break;
 
-            ActualizaTurnoLabel();
+                case TipoCarta.BLOQUEA:
+                    AvanzarTurno();
+                    AvanzarTurno();
+                    break;
+
+                case TipoCarta.MASDOS:
+                    DarCartasASiguienteJugador(2); //cuando un jugador come por un +2 pierde su turno
+                    AvanzarTurno();
+                    if ( turnoActual== 1) MessageBox.Show($"{jugador1.GetNombre()} comes 2 y pierdes tu turno :(","Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    else if (turnoActual == 2) MessageBox.Show($"{jugador2.GetNombre()} comes 2 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    else if ( turnoActual == 3) MessageBox.Show($"{jugador3.GetNombre()} comes 2 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AvanzarTurno();
+                    break;
+
+                case TipoCarta.MASCUATRO:
+                    DarCartasASiguienteJugador(4); //cuando un jugador come por un +4 pierde su turno
+                    AvanzarTurno();
+                    if (turnoActual == 1) MessageBox.Show($"{jugador1.GetNombre()} comes 4 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    else if (turnoActual == 2) MessageBox.Show($"{jugador2.GetNombre()} comes 4 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    else if (turnoActual == 3) MessageBox.Show($"{jugador3.GetNombre()} comes 4 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    AvanzarTurno();
+                    break;
+
+                default:
+                    AvanzarTurno();
+                    break;
+            }
+
+        }
+
+        //para cuando algun jugador tiene que comer cartas del mazo (con +2 o +4)
+        private void DarCartasASiguienteJugador(int cantidad)
+        {
+            Jugador jugadorDestino = null;
+            int siguienteTurno = turnoActual + direccionJuego;
+
+            if (siguienteTurno > 3) siguienteTurno = 1;
+            if (siguienteTurno < 1) siguienteTurno = 3;
+
+            if (siguienteTurno == 1) jugadorDestino = jugador1;
+            else if (siguienteTurno == 2) jugadorDestino = jugador2;
+            else if (siguienteTurno == 3) jugadorDestino = jugador3;
+
+            for (int i = 0; i < cantidad; i++)
+            {
+                Carta robada = baraja.Robar_Carta();
+                jugadorDestino.RecibirCarta(robada);
+
+                if (siguienteTurno == 1)
+                {
+                    PictureBox card = Obtener_Imagen_Carta(robada);
+                    card.SizeMode = PictureBoxSizeMode.StretchImage;
+                    card.Width = 70;
+                    card.Height = 100;
+
+                    card.Tag = robada; 
+                    card.Click += new EventHandler(Carta_Click);
+                    cartas_jugador1.Controls.Add(card);
+                }
+                else if (siguienteTurno == 2)
+                {
+                    PictureBox card = Obtener_Imagen_Carta(robada); ;
+                    card.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                    card.SizeMode = PictureBoxSizeMode.StretchImage;
+                    card.Width = 100;
+                    card.Height = 70;
+
+                    card.Tag = robada; 
+                    card.Click += new EventHandler(Carta_Click);
+                    cartas_jugador2.Controls.Add(card);
+                }
+                else if (siguienteTurno == 3)
+                {
+                    PictureBox card = Obtener_Imagen_Carta(robada);
+                    card.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                    card.SizeMode = PictureBoxSizeMode.StretchImage;
+                    card.Width = 100;
+                    card.Height = 70;
+
+                    card.Tag = robada;
+                    card.Click += new EventHandler(Carta_Click);
+                    cartas_jugador3.Controls.Add(card);
+                }
+            }
+        }
+
+        //evento que controla el juego cuando se hace click en una carta
+        private void Carta_Click(object sender, EventArgs e)
+        {
+            //checamos en que picture box hizo click
+            PictureBox pictureBoxClickeado = sender as PictureBox;
+            if (pictureBoxClickeado == null) return;
+
+            //recuperamos la pura carta
+            Carta cartaSeleccionada = pictureBoxClickeado.Tag as Carta;
+            if (cartaSeleccionada == null) return;
+
+           
+            if (!validaTurno(pictureBoxClickeado))
+            {
+                MessageBox.Show("¡No es tu turno!", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+         
+            Carta cartaEnPila = cartas_en_pila.Last();
+            if (!EsJugadaValida(cartaSeleccionada, cartaEnPila))
+            {
+                MessageBox.Show("¡Jugada inválida! La carta no coincide en color, número o tipo.", "Reglas del UNO", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            RealizaJugada(cartaSeleccionada, pictureBoxClickeado);
+        }
+
+        private bool validaTurno(PictureBox pb)
+        {
+          
+            if (turnoActual == 1 && cartas_jugador1.Controls.Contains(pb)) return true;
+            if (turnoActual == 2 && cartas_jugador2.Controls.Contains(pb)) return true;
+            if (turnoActual == 3 && cartas_jugador3.Controls.Contains(pb)) return true;
+
+            return false;
+        }
+
+        private void RealizaJugada(Carta cartaJugada, PictureBox pictureBoxCarta)
+        {
+            // quitamos la carta de la mano del jugador actual
+            if (turnoActual == 1) jugador1.JugarCarta(cartaJugada);
+            else if (turnoActual == 2) jugador2.JugarCarta(cartaJugada);
+            else if (turnoActual == 3) jugador3.JugarCarta(cartaJugada);
+
+            // quitar el pictureBox visualmente de su panel actual
+            pictureBoxCarta.Parent.Controls.Remove(pictureBoxCarta);
+
+            // ponemos la carta en la pila visual y logica
+            if(turnoActual== 2)
+            {
+                pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            }
+            else if (turnoActual == 3)
+            {
+                pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+            }
+
+            pila_cartas.Image = pictureBoxCarta.Image;
+            cartas_en_pila.Add(cartaJugada);
+
+
+            //VerificarGanador()
+
+            AplicarEfectoCarta(cartaJugada);
         }
 
         
-
-
         private PictureBox Obtener_Imagen_Carta(Carta carta)
         {
             PictureBox imagen_carta = new PictureBox();

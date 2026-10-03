@@ -14,7 +14,7 @@ MODIFY COLUMN id_jugador INT NOT NULL;
 ALTER TABLE log_juego
 ADD PRIMARY KEY (id_partida, id_jugador);
 
-ALTER TABLE log_juegohistorial_partidas
+ALTER TABLE log_juego
 ADD CONSTRAINT fk_log_historial_partidas
 FOREIGN KEY (id_partida) REFERENCES historial_partidas(id_partida) 
 ON DELETE CASCADE
