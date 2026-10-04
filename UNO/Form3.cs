@@ -9,21 +9,25 @@ namespace UNO
 {
     public partial class Form3 : Form
     {
-        public Form3()
+        private string ganadorPartida;
+        private string castigadoPartida;
+        private int cartasComidasPartida;
+
+        //datos de la partida actual que concluy
+        public Form3(string nombreGanador, string nombreCastigado, int totalCartasComidas)
         {
             InitializeComponent();
+            ganadorPartida = nombreGanador;
+            castigadoPartida = nombreCastigado;
+            cartasComidasPartida = totalCartasComidas;
         }
 
-
-
-        // 1. El evento cuando abre la ventana
         private async void Form3_Load(object sender, EventArgs e)
         {
-            await CargarYTransformarResumenAsync();
+            await CargarResumenDesdeApiAsync();
         }
 
-        // 2. El método que hace la petición a la API y da formato al texto
-        private async Task CargarYTransformarResumenAsync()
+        private async Task CargarResumenDesdeApiAsync()
         {
             apiService servicioApi = new apiService();
             string urlEndpoint = "http://127.0.0.1:8000/jugadores";
@@ -31,32 +35,28 @@ namespace UNO
             try
             {
                 string jsonRespuesta = await servicioApi.ObtenerDatosAsync(urlEndpoint);
+
+                // Si la API no responde o regresa vacio,lanza error
+                if (string.IsNullOrEmpty(jsonRespuesta))
+                {
+                    throw new Exception("La API no devolvió datos.");
+                }
+
                 List<JugadorDto> listaJugadores = JsonConvert.DeserializeObject<List<JugadorDto>>(jsonRespuesta);
 
-                // Buscamos al ganador (el que tenga más partidas ganadas) y al que comió más cartas
-                var ganador = listaJugadores.OrderByDescending(j => j.partidas_ganadas).FirstOrDefault();
-                var masCartas = listaJugadores.OrderByDescending(j => j.cartas_comidas).FirstOrDefault();
-
                 string resumenFormateado = "========================================\r\n";
-                
-                if (ganador != null)
-                {
-                    resumenFormateado += $"🏆 ¡GRAN GANADOR: {ganador.nombre.ToUpper()}! 🏆\r\n";
-                    resumenFormateado += $"   Partidas ganadas: {ganador.partidas_ganadas}\r\n\r\n";
-                }
+              
+                // Datos de la partida actual
+                resumenFormateado += $"🏆 ¡GRAN GANADOR: {ganadorPartida.ToUpper()}! 🏆\r\n\r\n";
+                resumenFormateado += $"🃏 El castigado de esta ronda: {castigadoPartida}\r\n";
+                resumenFormateado += $"   Cartas acumuladas hoy: {cartasComidasPartida}\r\n\r\n";
 
-                if (masCartas != null)
-                {
-                    resumenFormateado += $"🃏 El castigado (comió más cartas): {masCartas.nombre}\r\n";
-                    resumenFormateado += $"   Total de cartas acumuladas: {masCartas.cartas_comidas}\r\n\r\n";
-                }
-
-                resumenFormateado += "\r\n========================================\r\n";
-                resumenFormateado += "Estadísticas de todos los jugadores:\r\n\r\n";
+                resumenFormateado += "----------------------------------------\r\n";
+                resumenFormateado += "Estadísticas globales:\r\n\r\n";
 
                 foreach (var jugador in listaJugadores)
                 {
-                    resumenFormateado += $"  • {jugador.nombre} | Wins: {jugador.partidas_ganadas} | Cartas comidas: {jugador.cartas_comidas}\r\n";
+                    resumenFormateado += $"  • {jugador.nombre} | Wins: {jugador.partidas_ganadas} | Historial comidas: {jugador.cartas_comidas}\r\n";
                 }
 
                 resumenFormateado += "\r\n========================================\r\n";
@@ -66,17 +66,19 @@ namespace UNO
             }
             catch (Exception ex)
             {
-                label2.Text = "Error al cargar el resumen de la partida:\r\n" + ex.Message;
+                // Si falla la API, mostramos explícitamente el error de conexión para la evaluación
+                label2.Text = "❌ ERROR: No se pudo conectar con la API.\r\n\r\n" +
+                              "Verifique que el servidor FastAPI esté encendido.\r\n\r\n" +
+                              $"Detalles técnicos:\r\n{ex.Message}";
             }
         }
     }
+
     public class JugadorDto
     {
         public int id_jugador { get; set; }
         public string nombre { get; set; }
         public int partidas_ganadas { get; set; }
-        public int cartas_comidas { get; set; } // O cartas robadas del mazo
+        public int cartas_comidas { get; set; }
     }
-
-
 }

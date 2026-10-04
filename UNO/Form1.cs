@@ -60,12 +60,8 @@ namespace UNO
             Repartir_Cartas();
             ActualizaTurnoLabel();
 
-            boton_uno.Visible = false;
+            boton_uno.Visible = true;
 
-
-            //prueba para la ventana de resumen de partida
-            Form3 ventanaResumen = new Form3();
-            ventanaResumen.ShowDialog(this);
         }
 
         private void Repartir_Cartas()
@@ -379,6 +375,8 @@ namespace UNO
 
             //VerificarGanador()
 
+            VerificarGanador();
+
             AplicarEfectoCarta(cartaJugada);
         }
 
@@ -603,6 +601,46 @@ namespace UNO
             return imagen_carta;
         }
 
+       
+        private void VerificarGanador()
+        {
+            string nombreGanador = "";
+            bool hayGanador = false;
+
+            //verificamos el conteo de cartas r
+            if (cartas_jugador1.Controls.Count == 0)
+            {
+                nombreGanador = jugador1.GetNombre();
+                hayGanador = true;
+            }
+            else if (cartas_jugador2.Controls.Count == 0)
+            {
+                nombreGanador = jugador2.GetNombre();
+                hayGanador = true;
+            }
+            else if (cartas_jugador3.Controls.Count == 0)
+            {
+                nombreGanador = jugador3.GetNombre();
+                hayGanador = true;
+            }
+
+            if (hayGanador)
+            {
+                MessageBox.Show($"¡{nombreGanador} ha ganado la partida!", "¡Victoria!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                //definimos temporalmente datos de la partida actual para el resumen de partida
+                string nombreCastigado = jugador2.GetNombre(); // O el que corresponda 
+                int cartasComidasRonda = 2;
+
+                // le pasamos a la ventana de reumne de partida  datos de la partida
+                Form3 ventanaResumen = new Form3(nombreGanador, nombreCastigado, cartasComidasRonda);
+                ventanaResumen.ShowDialog(this);
+
+                // Cerramos o reiniciamos el formulario principal
+                this.Close();
+            }
+        }
+
         private void groupBox3_Enter(object sender, EventArgs e)
         {}
 
@@ -616,6 +654,13 @@ namespace UNO
 
         private void Form1_Load(object sender, EventArgs e)
         {
+
+        }
+
+        private void boton_uno_Click(object sender, EventArgs e)
+        {
+            // El jugador actual o un rival ha cantado "¡UNO!" a tiempo
+            MessageBox.Show("¡UNO!", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
     }

@@ -215,6 +215,7 @@
             this.boton_uno.TabIndex = 4;
             this.boton_uno.Text = "¡UNO!";
             this.boton_uno.UseVisualStyleBackColor = false;
+            this.boton_uno.Click += new System.EventHandler(this.boton_uno_Click);
             // 
             // lblTurno
             // 
