@@ -59,8 +59,8 @@ namespace UNO
             //repartimos las cartas en el tablero
             Repartir_Cartas();
             ActualizaTurnoLabel();
-                   
-            
+
+            boton_uno.Visible = false;
         }
 
         private void Repartir_Cartas()
