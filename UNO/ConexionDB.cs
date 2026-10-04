@@ -52,22 +52,25 @@ namespace UNO
             return idJugador;
         }
 
-        public static void GuardarLog(string evento)
+        public static void GuardarLog(int idPartida, int idJugador, string movimiento)
         {
             using (MySqlConnection conn = new MySqlConnection(connStr))
             {
                 try
                 {
                     conn.Open();
-                    string query = "INSERT INTO log_juego (movimiento, fecha_hora) VALUES (@movimiento, NOW());";
+                    string query = "INSERT INTO log_juego (id_partida, id_jugador, movimiento, fecha_hora) VALUES (@idPartida, @idJugador, @movimiento, NOW());";
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@movimiento", evento);
+                        cmd.Parameters.AddWithValue("@idPartida", idPartida);
+                        cmd.Parameters.AddWithValue("@idJugador", idJugador);
+                        cmd.Parameters.AddWithValue("@movimiento", movimiento);
                         cmd.ExecuteNonQuery();
                     }
                 }
                 catch (Exception ex)
                 {
+                    //MessageBox.Show("Error real en GuardarLog: " + ex.Message, "Error de BD", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     System.Diagnostics.Debug.WriteLine("Error en BD (Log): " + ex.Message);
                 }
             }

@@ -21,10 +21,25 @@ namespace UNO
         private int turnoActual = 1; //jug 1 = 1, jug 2 = 2, ....
         private int direccionJuego = 1; // direccion normal 1 y para cuando va en reversa -1
 
+        private int idJugador1 = -1; // se inicializan en -1 porque aun no se cargan
+        private int idJugador2 = -1;
+        private int idJugador3 = -1;
+        private int idPartidaActual = 1;
         public Form1(string n1, string n2, string n3)
         {
 
             InitializeComponent();
+
+            bool nuevo1, nuevo2, nuevo3;
+            int idJugador1 = ConexionBD.RegistrarOObtenerJugadorConEstado(n1, out nuevo1);
+            int idJugador2 = ConexionBD.RegistrarOObtenerJugadorConEstado(n2, out nuevo2);
+            int idJugador3 = ConexionBD.RegistrarOObtenerJugadorConEstado(n3, out nuevo3);
+
+            
+            ConexionBD.InicializarHistorial(idJugador1);
+            ConexionBD.InicializarHistorial(idJugador2);
+            ConexionBD.InicializarHistorial(idJugador3);
+
 
             baraja = new Baraja();
             baraja.Barajar();
@@ -307,6 +322,14 @@ namespace UNO
 
         private void RealizaJugada(Carta cartaJugada, PictureBox pictureBoxCarta, bool llamada)
         {
+
+            int idJugadorActual = -1;
+            if (turnoActual == 1) idJugadorActual = idJugador1;
+            else if (turnoActual == 2) idJugadorActual = idJugador2;
+            else if (turnoActual == 3) idJugadorActual = idJugador3;
+
+            ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, $"Tiró la carta {cartaJugada.getTipo()} de color {cartaJugada.getColor()}");
+
             // quitamos la carta de la mano del jugador actual
             if (turnoActual == 1) jugador1.JugarCarta(cartaJugada);
             else if (turnoActual == 2) jugador2.JugarCarta(cartaJugada);
@@ -422,6 +445,13 @@ namespace UNO
 
         private void RobarMazoCarta(object sender, EventArgs e)
         {
+            int idJugadorActual = -1;
+            if (turnoActual == 1) idJugadorActual = idJugador1;
+            else if (turnoActual == 2) idJugadorActual = idJugador2;
+            else if (turnoActual == 3) idJugadorActual = idJugador3;
+
+            ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, "Robó una carta del mazo");
+
             Carta robada = baraja.Robar_Carta();
             
 
