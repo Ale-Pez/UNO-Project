@@ -35,10 +35,12 @@ namespace UNO
 
             InitializeComponent();
 
+            idPartidaActual = ConexionBD.CrearNuevaPartida();
+
             bool nuevo1, nuevo2, nuevo3;
-            int idJugador1 = ConexionBD.RegistrarOObtenerJugadorConEstado(n1, out nuevo1);
-            int idJugador2 = ConexionBD.RegistrarOObtenerJugadorConEstado(n2, out nuevo2);
-            int idJugador3 = ConexionBD.RegistrarOObtenerJugadorConEstado(n3, out nuevo3);
+            idJugador1 = ConexionBD.RegistrarOObtenerJugadorConEstado(n1, out nuevo1);
+            idJugador2 = ConexionBD.RegistrarOObtenerJugadorConEstado(n2, out nuevo2);
+            idJugador3 = ConexionBD.RegistrarOObtenerJugadorConEstado(n3, out nuevo3);
 
 
             ConexionBD.InicializarHistorial(idJugador1);
@@ -623,27 +625,40 @@ namespace UNO
         private void VerificarGanador()
         {
             string nombreGanador = "";
+            int idGanador = -1;
             bool hayGanador = false;
 
             //verificamos el conteo de cartas r
             if (cartas_jugador1.Controls.Count == 0)
             {
                 nombreGanador = jugador1.GetNombre();
+                idGanador = idJugador1;
                 hayGanador = true;
             }
             else if (cartas_jugador2.Controls.Count == 0)
             {
                 nombreGanador = jugador2.GetNombre();
+                idGanador = idJugador2;
                 hayGanador = true;
             }
             else if (cartas_jugador3.Controls.Count == 0)
             {
                 nombreGanador = jugador3.GetNombre();
+                idGanador= idJugador3;
                 hayGanador = true;
             }
 
             if (hayGanador)
             {
+                ConexionBD.FinalizarPartida(idPartidaActual, nombreGanador);
+
+                ConexionBD.RegistrarResultadoPartida(idGanador, true); 
+
+                // a los otros dos jugadores se les registra la derrota 
+                if (idGanador != idJugador1) ConexionBD.RegistrarResultadoPartida(idJugador1, false);
+                if (idGanador != idJugador2) ConexionBD.RegistrarResultadoPartida(idJugador2, false);
+                if (idGanador != idJugador3) ConexionBD.RegistrarResultadoPartida(idJugador3, false);
+
                 MessageBox.Show($"¡{nombreGanador} ha ganado la partida!", "¡Victoria!", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 //definimos temporalmente datos de la partida actual para el resumen de partida
