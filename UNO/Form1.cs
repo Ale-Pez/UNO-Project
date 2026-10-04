@@ -661,12 +661,11 @@ namespace UNO
 
                 MessageBox.Show($"¡{nombreGanador} ha ganado la partida!", "¡Victoria!", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                //definimos temporalmente datos de la partida actual para el resumen de partida
-                string nombreCastigado = jugador2.GetNombre(); // O el que corresponda 
-                int cartasComidasRonda = 2;
 
-                // le pasamos a la ventana de reumne de partida  datos de la partida
-                Form3 ventanaResumen = new Form3(nombreGanador, nombreCastigado, cartasComidasRonda);
+                // ventana de resumen de partda
+
+                string nombreCastigado = jugador2.GetNombre(); // O el perdedor correspondiente
+                Form3 ventanaResumen = new Form3(nombreGanador, nombreCastigado);
                 ventanaResumen.ShowDialog(this);
 
                 // Cerramos o reiniciamos el formulario principal
