@@ -28,6 +28,7 @@ namespace UNO
 
             baraja = new Baraja();
             baraja.Barajar();
+            mazo_cartas.Click += new EventHandler(RobarMazoCarta);
             cartas_en_pila = new List<Carta>();
 
             //inicializar a los jugadores con los nombres que pusieron en el registro
@@ -43,6 +44,7 @@ namespace UNO
             //repartimos las cartas en el tablero
             Repartir_Cartas();
             ActualizaTurnoLabel();
+                   
             
         }
 
@@ -162,6 +164,11 @@ namespace UNO
         {
             switch (cartaJugada.getTipo())
             {
+                case TipoCarta.COMODIN:
+                    ColorCarta colorElegidoComodin = SolicitarEleccionColor(); //el jugaedor selecciona el nuevo color
+                    cartaJugada.setColor(colorElegidoComodin);
+                    AvanzarTurno();
+                    break;
 
                 case TipoCarta.REVERSA:
                     direccionJuego *= -1;
@@ -170,6 +177,9 @@ namespace UNO
 
                 case TipoCarta.BLOQUEA:
                     AvanzarTurno();
+                    if (turnoActual == 1) MessageBox.Show($"{jugador1.GetNombre()} pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    else if (turnoActual == 2) MessageBox.Show($"{jugador2.GetNombre()} pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    else if (turnoActual == 3) MessageBox.Show($"{jugador3.GetNombre()} pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     AvanzarTurno();
                     break;
 
@@ -183,6 +193,8 @@ namespace UNO
                     break;
 
                 case TipoCarta.MASCUATRO:
+                    ColorCarta colorElegidoMas4 = SolicitarEleccionColor(); //jugador elige el nuevo color
+                    cartaJugada.setColor(colorElegidoMas4);
                     DarCartasASiguienteJugador(4); //cuando un jugador come por un +4 pierde su turno
                     AvanzarTurno();
                     if (turnoActual == 1) MessageBox.Show($"{jugador1.GetNombre()} comes 4 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -280,7 +292,7 @@ namespace UNO
                 return;
             }
 
-            RealizaJugada(cartaSeleccionada, pictureBoxClickeado);
+            RealizaJugada(cartaSeleccionada, pictureBoxClickeado, true);
         }
 
         private bool validaTurno(PictureBox pb)
@@ -293,7 +305,7 @@ namespace UNO
             return false;
         }
 
-        private void RealizaJugada(Carta cartaJugada, PictureBox pictureBoxCarta)
+        private void RealizaJugada(Carta cartaJugada, PictureBox pictureBoxCarta, bool llamada)
         {
             // quitamos la carta de la mano del jugador actual
             if (turnoActual == 1) jugador1.JugarCarta(cartaJugada);
@@ -301,17 +313,25 @@ namespace UNO
             else if (turnoActual == 3) jugador3.JugarCarta(cartaJugada);
 
             // quitar el pictureBox visualmente de su panel actual
-            pictureBoxCarta.Parent.Controls.Remove(pictureBoxCarta);
+            if (pictureBoxCarta.Parent != null)
+            {
+                pictureBoxCarta.Parent.Controls.Remove(pictureBoxCarta);
+            }
 
             // ponemos la carta en la pila visual y logica
-            if(turnoActual== 2)
+
+            if (llamada) //si la llamada viene desde un click la imagen si rotan
             {
-                pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                if (turnoActual == 2)
+                {
+                    pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                }
+                else if (turnoActual == 3)
+                {
+                    pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                }
             }
-            else if (turnoActual == 3)
-            {
-                pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
-            }
+            // si la llamada viene desde un robo de mazo la imagen no rota solo se agrega al picture box
 
             pila_cartas.Image = pictureBoxCarta.Image;
             cartas_en_pila.Add(cartaJugada);
@@ -322,7 +342,164 @@ namespace UNO
             AplicarEfectoCarta(cartaJugada);
         }
 
-        
+        private ColorCarta SolicitarEleccionColor()
+        {
+            // crea una ventana emergente para la seleccion del color
+            ColorCarta colorElegido = ColorCarta.ROJO;
+
+            Form ventanaColor = new Form()
+            {
+                Width = 350,
+                Height = 150,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = "Elige un color para el Comodin",
+                StartPosition = FormStartPosition.CenterParent
+            };
+
+            Label lbl = new Label() { Text = "¿Qué color deseas elegir?", Left = 20, Top = 20, Width = 250 };
+            ventanaColor.Controls.Add(lbl);
+
+            Button btnRojo = new Button() { Text = "Rojo", Left = 20, Top = 60, BackColor = Color.Red, ForeColor = Color.White };
+            Button btnAmarillo = new Button() { Text = "Amarillo", Left = 90, Top = 60, BackColor = Color.Yellow };
+            Button btnVerde = new Button() { Text = "Verde", Left = 160, Top = 60, BackColor = Color.Green, ForeColor = Color.White };
+            Button btnAzul = new Button() { Text = "Azul", Left = 230, Top = 60, BackColor = Color.Blue, ForeColor = Color.White };
+
+            // asignamos eventos a los botones
+            btnRojo.Click += (s, e) => { colorElegido = ColorCarta.ROJO; ventanaColor.Close(); };
+            btnAmarillo.Click += (s, e) => { colorElegido = ColorCarta.AMARILLO; ventanaColor.Close(); };
+            btnVerde.Click += (s, e) => { colorElegido = ColorCarta.VERDE; ventanaColor.Close(); };
+            btnAzul.Click += (s, e) => { colorElegido = ColorCarta.AZUL; ventanaColor.Close(); };
+
+            ventanaColor.Controls.Add(btnRojo);
+            ventanaColor.Controls.Add(btnAmarillo);
+            ventanaColor.Controls.Add(btnVerde);
+            ventanaColor.Controls.Add(btnAzul);
+
+            ventanaColor.ShowDialog(); // muestra la ventana y espera a que el usuario elija
+            return colorElegido;
+        }
+
+        private bool JugadaEstrategica(Carta cartaRobada)
+        {
+    
+            bool opcion = false;
+
+            Form ventanaJugada = new Form()
+            {
+                Width = 280,
+                Height = 230,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = "Jugada Estrategica",
+                StartPosition = FormStartPosition.CenterParent
+            };
+
+            Label lbl = new Label() { Text = "¿Deseas jugar esta carta?", Left = 20, Top = 15, Width = 230 };
+            ventanaJugada.Controls.Add(lbl);
+
+            PictureBox pbCarta = Obtener_Imagen_Carta(cartaRobada);
+            pbCarta.SizeMode = PictureBoxSizeMode.StretchImage;
+            pbCarta.Width = 70;
+            pbCarta.Height = 100;
+            pbCarta.Left = (ventanaJugada.ClientSize.Width - pbCarta.Width) / 2;
+            pbCarta.Top = 45;
+            ventanaJugada.Controls.Add(pbCarta);
+
+            Button si = new Button() { Text = "Si", Left = 50, Top = 155, Width=70, BackColor = Color.Green, ForeColor = Color.White };
+            Button no = new Button() { Text = "No", Left = 140, Top = 155, Width=70, BackColor = Color.Red, ForeColor= Color.White };
+            
+
+            // asignamos eventos a los botones
+            si.Click += (s, e) => { opcion = true; ventanaJugada.Close(); };
+            no.Click += (s, e) => { opcion = false; ventanaJugada.Close(); };
+            
+
+            ventanaJugada.Controls.Add(si);
+            ventanaJugada.Controls.Add(no);
+            
+            ventanaJugada.ShowDialog(); 
+            return opcion;
+        }
+
+        private void RobarMazoCarta(object sender, EventArgs e)
+        {
+            Carta robada = baraja.Robar_Carta();
+            
+
+            if ( robada == null)
+            {
+                //Barajear las cartas en pilas y agregarlas a baraja
+            }
+            else
+            {
+                PictureBox imagenCarta = Obtener_Imagen_Carta(robada);
+                if (turnoActual == 1) jugador1.RecibirCarta(robada);
+                else if (turnoActual == 2) jugador2.RecibirCarta(robada);
+                else if (turnoActual == 3) jugador3.RecibirCarta(robada);
+
+                if( EsJugadaValida(robada, cartas_en_pila.Last()) )
+                {
+                    if ( JugadaEstrategica(robada))
+                    {
+                        RealizaJugada(robada, imagenCarta, false);
+                        return;
+
+                    }
+                    else
+                    {
+                        MessageBox.Show("Decidiste conservar la carta", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+                else
+                {
+                    if (robada.getTipo() == TipoCarta.NUMERO)
+                    {
+                        MessageBox.Show($"La carta que robaste es {robada.getColor()} y numero {robada.getNumero()} por lo tanto no es valida. Haz perdido tu turno", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"La carta que robaste es  {robada.getColor()} y de tipo {robada.getTipo()} por lo tanto no es valida. Haz perdido tu turno", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+
+                if ( turnoActual == 1)
+                {
+                    imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
+                    imagenCarta.Width = 70;
+                    imagenCarta.Height = 100;
+
+                    imagenCarta.Tag = robada;
+                    imagenCarta.Click += new EventHandler(Carta_Click);
+                    cartas_jugador1.Controls.Add(imagenCarta);
+                }
+                else if( turnoActual == 2)
+                {
+                    imagenCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                    imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
+                    imagenCarta.Width = 100;
+                    imagenCarta.Height = 70;
+
+                    imagenCarta.Tag = robada;
+                    imagenCarta.Click += new EventHandler(Carta_Click);
+                    cartas_jugador2.Controls.Add(imagenCarta);
+                }
+                else if(turnoActual == 3)
+                {
+                    imagenCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                    imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
+                    imagenCarta.Width = 100;
+                    imagenCarta.Height = 70;
+
+                    imagenCarta.Tag = robada;
+                    imagenCarta.Click += new EventHandler(Carta_Click);
+                    cartas_jugador3.Controls.Add(imagenCarta);
+                }
+                AvanzarTurno();
+
+            }
+            
+        }
+
+
         private PictureBox Obtener_Imagen_Carta(Carta carta)
         {
             PictureBox imagen_carta = new PictureBox();
