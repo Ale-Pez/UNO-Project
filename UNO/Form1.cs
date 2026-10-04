@@ -59,8 +59,8 @@ namespace UNO
             //repartimos las cartas en el tablero
             Repartir_Cartas();
             ActualizaTurnoLabel();
-                   
-            
+
+            boton_uno.Visible = false;
         }
 
         private void Repartir_Cartas()
@@ -116,14 +116,26 @@ namespace UNO
                 cartas_jugador3.Controls.Add(reverso);
             }
 
-            Carta inicial = baraja.Robar_Carta();
+            Carta carta_inicial = null;
+            do
+            {
+                carta_inicial = baraja.Robar_Carta();
+                if (carta_inicial.getTipo() != TipoCarta.NUMERO)
+                {
+                    baraja.Regresar_Carta(carta_inicial);
+                    carta_inicial = null;
+                }
+                else
+                {
+                    pila_cartas.Image = Obtener_Imagen_Carta(carta_inicial).Image;
+                    pila_cartas.SizeMode = PictureBoxSizeMode.StretchImage;
+                    pila_cartas.Width = 70;
+                    pila_cartas.Height = 100;
 
-            pila_cartas.Image = Obtener_Imagen_Carta(inicial).Image;
-            pila_cartas.SizeMode = PictureBoxSizeMode.StretchImage;
-            pila_cartas.Width = 70;
-            pila_cartas.Height = 100;
+                    cartas_en_pila.Add(carta_inicial);
+                }
 
-            cartas_en_pila.Add(inicial);
+            } while (carta_inicial == null);
         }
 
         // logica de los turnos
