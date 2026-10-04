@@ -61,6 +61,11 @@ namespace UNO
             ActualizaTurnoLabel();
 
             boton_uno.Visible = false;
+
+
+            //prueba para la ventana de resumen de partida
+            Form3 ventanaResumen = new Form3();
+            ventanaResumen.ShowDialog(this);
         }
 
         private void Repartir_Cartas()
@@ -607,6 +612,11 @@ namespace UNO
         private void groupBox4_Enter(object sender, EventArgs e)
         {
         
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
