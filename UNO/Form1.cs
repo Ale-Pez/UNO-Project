@@ -1,13 +1,14 @@
-﻿using UNO;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using UNO;
 
 namespace UNO
 {
@@ -20,6 +21,10 @@ namespace UNO
         private Jugador jugador3;
         private int turnoActual = 1; //jug 1 = 1, jug 2 = 2, ....
         private int direccionJuego = 1; // direccion normal 1 y para cuando va en reversa -1
+
+        private bool unoCantadoEnTurno = false;
+        private bool esJugadaDesdeMazo = false;
+
 
         private int idJugador1 = -1; // se inicializan en -1 porque aun no se cargan
         private int idJugador2 = -1;
@@ -35,7 +40,7 @@ namespace UNO
             int idJugador2 = ConexionBD.RegistrarOObtenerJugadorConEstado(n2, out nuevo2);
             int idJugador3 = ConexionBD.RegistrarOObtenerJugadorConEstado(n3, out nuevo3);
 
-            
+
             ConexionBD.InicializarHistorial(idJugador1);
             ConexionBD.InicializarHistorial(idJugador2);
             ConexionBD.InicializarHistorial(idJugador3);
@@ -60,7 +65,9 @@ namespace UNO
             Repartir_Cartas();
             ActualizaTurnoLabel();
 
-            boton_uno.Visible = false;
+            boton_uno.Visible = true;
+            boton_uno.Click += new EventHandler(boton_uno_Click);
+
         }
 
         private void Repartir_Cartas()
@@ -149,8 +156,8 @@ namespace UNO
 
         private void AvanzarTurno()
         {
+            // Cambiamos al siguiente turno segun la dirección del juego
             turnoActual += direccionJuego;
-
 
             if (turnoActual > 3) turnoActual = 1;
             if (turnoActual < 1) turnoActual = 3;
@@ -335,45 +342,60 @@ namespace UNO
         private void RealizaJugada(Carta cartaJugada, PictureBox pictureBoxCarta, bool llamada)
         {
 
-            int idJugadorActual = -1;
-            if (turnoActual == 1) idJugadorActual = idJugador1;
-            else if (turnoActual == 2) idJugadorActual = idJugador2;
-            else if (turnoActual == 3) idJugadorActual = idJugador3;
+            Jugador jugadorActualObj = (turnoActual == 1) ? jugador1 : (turnoActual == 2) ? jugador2 : jugador3;
 
-            ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, $"Tiró la carta {cartaJugada.getTipo()} de color {cartaJugada.getColor()}");
-
-            // quitamos la carta de la mano del jugador actual
-            if (turnoActual == 1) jugador1.JugarCarta(cartaJugada);
-            else if (turnoActual == 2) jugador2.JugarCarta(cartaJugada);
-            else if (turnoActual == 3) jugador3.JugarCarta(cartaJugada);
-
-            // quitar el pictureBox visualmente de su panel actual
-            if (pictureBoxCarta.Parent != null)
+            if (!esJugadaDesdeMazo)
             {
-                pictureBoxCarta.Parent.Controls.Remove(pictureBoxCarta);
+                int cartasEnManoAntesDeJugar = 0;
+                if (turnoActual == 1) cartasEnManoAntesDeJugar = cartas_jugador1.Controls.Count;
+                else if (turnoActual == 2) cartasEnManoAntesDeJugar = cartas_jugador2.Controls.Count;
+                else if (turnoActual == 3) cartasEnManoAntesDeJugar = cartas_jugador3.Controls.Count;
+
+                // Si el jugador tenía EXACTAMENTE 1 carta ANTES de tirar, significa que esta es su última carta.
+                if (cartasEnManoAntesDeJugar == 1)
+                {
+                    if (unoCantadoEnTurno)
+                    {
+                        // ¡Cantó UNO a tiempo! Gana la partida limpiamente
+                        ContinuarJugadaNormal(cartaJugada, pictureBoxCarta, llamada);
+                        VerificarGanador();
+                        unoCantadoEnTurno = false; // Reseteamos la bandera
+                        return;
+                    }
+                    else
+                    {
+                        // NO cantó UNO: Recibe castigo de 2 cartas y pierde el turno
+                        MessageBox.Show($"¡{jugadorActualObj.GetNombre()} tiró su última carta pero olvidó decir UNO! Recibe una penalización de 2 cartas y pierde su turno.", "Castigo UNO", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                        ContinuarJugadaNormal(cartaJugada, pictureBoxCarta, llamada);
+                        DarCartasAJugadorEspecifico(jugadorActualObj, 2);
+                        unoCantadoEnTurno = false; // Reseteamos la bandera
+                        AvanzarTurno();
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                esJugadaDesdeMazo = false;
             }
 
-            // ponemos la carta en la pila visual y logica
+            //flujo normal para cuando tira una carta y aun le quedan 2 o mas en la mano
+            ContinuarJugadaNormal(cartaJugada, pictureBoxCarta, llamada);
 
-            if (llamada) //si la llamada viene desde un click la imagen si rotan
+            //Si al tirar esta carta (que era la pen+ultima) el jugador se queda con EXACTAMENTE 1 carta,habilitamos el botón de UNO para que pueda presionarlo en este mismo turno.
+            int cartasRestantesDespuesDeJugar = 0;
+            if (turnoActual == 1) cartasRestantesDespuesDeJugar = cartas_jugador1.Controls.Count;
+            else if (turnoActual == 2) cartasRestantesDespuesDeJugar = cartas_jugador2.Controls.Count;
+            else if (turnoActual == 3) cartasRestantesDespuesDeJugar = cartas_jugador3.Controls.Count;
+
+            if (cartasRestantesDespuesDeJugar == 1)
             {
-                if (turnoActual == 2)
-                {
-                    pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                }
-                else if (turnoActual == 3)
-                {
-                    pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
-                }
+                boton_uno.Visible = true; // Aseguramos que el botón este visible para gritar UNO
+                
             }
-            // si la llamada viene desde un robo de mazo la imagen no rota solo se agrega al picture box
 
-            pila_cartas.Image = pictureBoxCarta.Image;
-            cartas_en_pila.Add(cartaJugada);
-
-
-            //VerificarGanador()
-
+            VerificarGanador();
             AplicarEfectoCarta(cartaJugada);
         }
 
@@ -482,7 +504,8 @@ namespace UNO
                 {
                     if ( JugadaEstrategica(robada))
                     {
-                        RealizaJugada(robada, imagenCarta, false);
+                        esJugadaDesdeMazo = true;
+                        RealizaJugada(robada, imagenCarta,false);
                         return;
 
                     }
@@ -540,8 +563,6 @@ namespace UNO
             }
             
         }
-
-
         private PictureBox Obtener_Imagen_Carta(Carta carta)
         {
             PictureBox imagen_carta = new PictureBox();
@@ -598,6 +619,46 @@ namespace UNO
             return imagen_carta;
         }
 
+       
+        private void VerificarGanador()
+        {
+            string nombreGanador = "";
+            bool hayGanador = false;
+
+            //verificamos el conteo de cartas r
+            if (cartas_jugador1.Controls.Count == 0)
+            {
+                nombreGanador = jugador1.GetNombre();
+                hayGanador = true;
+            }
+            else if (cartas_jugador2.Controls.Count == 0)
+            {
+                nombreGanador = jugador2.GetNombre();
+                hayGanador = true;
+            }
+            else if (cartas_jugador3.Controls.Count == 0)
+            {
+                nombreGanador = jugador3.GetNombre();
+                hayGanador = true;
+            }
+
+            if (hayGanador)
+            {
+                MessageBox.Show($"¡{nombreGanador} ha ganado la partida!", "¡Victoria!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                //definimos temporalmente datos de la partida actual para el resumen de partida
+                string nombreCastigado = jugador2.GetNombre(); // O el que corresponda 
+                int cartasComidasRonda = 2;
+
+                // le pasamos a la ventana de reumne de partida  datos de la partida
+                Form3 ventanaResumen = new Form3(nombreGanador, nombreCastigado, cartasComidasRonda);
+                ventanaResumen.ShowDialog(this);
+
+                // Cerramos o reiniciamos el formulario principal
+                this.Close();
+            }
+        }
+
         private void groupBox3_Enter(object sender, EventArgs e)
         {}
 
@@ -608,5 +669,110 @@ namespace UNO
         {
         
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void boton_uno_Click(object sender, EventArgs e)
+        {
+
+            unoCantadoEnTurno = true;
+            MessageBox.Show("¡UNO!", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            
+        }
+
+
+        //metodo auxiliar que se encargar exclusivamente de jugar la carta robada del mazo de forma limpia y sin activar jamas la penalizacion (el jugador no dice UNO)
+        private void RealizaJugadaDesdeMazo(Carta cartaJugada, PictureBox pictureBoxCarta)
+        {
+            int idJugadorActual = -1;
+            if (turnoActual == 1) idJugadorActual = idJugador1;
+            else if (turnoActual == 2) idJugadorActual = idJugador2;
+            else if (turnoActual == 3) idJugadorActual = idJugador3;
+
+            ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, $"Tiró (desde mazo) la carta {cartaJugada.getTipo()} de color {cartaJugada.getColor()}");
+
+            // NOTA: Como la carta se acaba de robar, NUNCA se añadió formalmente a la mano del jugador (solo se evaluó). 
+            // Por lo tanto, no hay que quitarla del objeto Jugador, solo colocarla directamente en la pila.
+
+            pila_cartas.Image = pictureBoxCarta.Image;
+            cartas_en_pila.Add(cartaJugada);
+
+            // Verificamos si con esto gana (por si acaso se quedó sin cartas antes, aunque robó) y aplicamos efectos
+            VerificarGanador();
+            AplicarEfectoCarta(cartaJugada);
+        }
+
+
+
+        // Método auxiliar para dar cartas a un jugador en específico (por castigos de UNO, etc.)
+        private void DarCartasAJugadorEspecifico(Jugador jugadorDestino, int cantidad)
+        {
+            for (int i = 0; i < cantidad; i++)
+            {
+                Carta robada = baraja.Robar_Carta();
+                if (robada == null) break; // Si la baraja se queda sin cartas
+
+                jugadorDestino.RecibirCarta(robada);
+                PictureBox card = Obtener_Imagen_Carta(robada);
+                card.SizeMode = PictureBoxSizeMode.StretchImage;
+
+                // Asignamos el panel y rotación según el jugador destino exacto
+                if (jugadorDestino == jugador1)
+                {
+                    card.Width = 70; card.Height = 100;
+                    card.Tag = robada; card.Click += new EventHandler(Carta_Click);
+                    cartas_jugador1.Controls.Add(card);
+                }
+                else if (jugadorDestino == jugador2)
+                {
+                    card.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                    card.Width = 100; card.Height = 70;
+                    card.Tag = robada; card.Click += new EventHandler(Carta_Click);
+                    cartas_jugador2.Controls.Add(card);
+                }
+                else if (jugadorDestino == jugador3)
+                {
+                    card.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                    card.Width = 100; card.Height = 70;
+                    card.Tag = robada; card.Click += new EventHandler(Carta_Click);
+                    cartas_jugador3.Controls.Add(card);
+                }
+            }
+        }
+
+        private void ContinuarJugadaNormal(Carta cartaJugada, PictureBox pictureBoxCarta, bool llamada)
+        {
+            int idJugadorActual = -1;
+            if (turnoActual == 1) idJugadorActual = idJugador1;
+            else if (turnoActual == 2) idJugadorActual = idJugador2;
+            else if (turnoActual == 3) idJugadorActual = idJugador3;
+
+            ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, $"Tiró la carta {cartaJugada.getTipo()} de color {cartaJugada.getColor()}");
+
+            // Quitamos la carta de la mano lógica del jugador actual
+            if (turnoActual == 1) jugador1.JugarCarta(cartaJugada);
+            else if (turnoActual == 2) jugador2.JugarCarta(cartaJugada);
+            else if (turnoActual == 3) jugador3.JugarCarta(cartaJugada);
+
+            // Quitamos el pictureBox visualmente de su panel actual
+            if (pictureBoxCarta.Parent != null)
+            {
+                pictureBoxCarta.Parent.Controls.Remove(pictureBoxCarta);
+            }
+
+            if (llamada)
+            {
+                if (turnoActual == 2) pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                else if (turnoActual == 3) pictureBoxCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+            }
+
+            pila_cartas.Image = pictureBoxCarta.Image;
+            cartas_en_pila.Add(cartaJugada);
+        }
     }
+    
+    
 }
