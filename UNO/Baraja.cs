@@ -117,4 +117,11 @@ public class Baraja
 
         return carta;
     }
+
+    // USO EXCLUSIVO DE LA PILA DE CARTAS
+    public void Regresar_Carta(Carta carta)
+    {
+        this.cartas.Add(carta);
+        this.Barajar();
+    }
 }
