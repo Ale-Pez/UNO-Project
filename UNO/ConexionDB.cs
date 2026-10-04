@@ -6,7 +6,7 @@ namespace UNO
 {
     public static class ConexionBD
     {
-        private static string connStr = "Server=127.0.0.1;Port=3306;Database=juego_uno;Uid=root;Pwd=M1234";
+        private static string connStr = "Server=127.0.0.1;Port=3306;Database=juego_uno;Uid=root;Pwd=VaRCHAR3006@";
         public static int RegistrarOObtenerJugadorConEstado(string nombreJugador, out bool esNuevo)
         {
             int idJugador = -1;
@@ -138,6 +138,50 @@ namespace UNO
                 catch (Exception ex)
                 {
                     MessageBox.Show("Error al actualizar historial: " + ex.Message, "Error BD", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        public static int CrearNuevaPartida()
+        {
+            int idPartida = -1;
+            using (MySqlConnection conn = new MySqlConnection(connStr))
+            {
+                try
+                {
+                    conn.Open();
+                    string query = "INSERT INTO partida (estado) VALUES ('En curso'); SELECT LAST_INSERT_ID();";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        idPartida = Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al crear la partida: " + ex.Message, "Error BD", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            return idPartida;
+        }
+
+        public static void FinalizarPartida(int idPartida, string nombreGanador)
+        {
+            using (MySqlConnection conn = new MySqlConnection(connStr))
+            {
+                try
+                {
+                    conn.Open();
+                    string query = "UPDATE partida SET ganador = @ganador, estado = 'Finalizada' WHERE id_partida = @id;";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ganador", nombreGanador);
+                        cmd.Parameters.AddWithValue("@id", idPartida);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Error al finalizar partida: " + ex.Message);
                 }
             }
         }
