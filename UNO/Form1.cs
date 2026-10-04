@@ -40,7 +40,7 @@ namespace UNO
             int idJugador2 = ConexionBD.RegistrarOObtenerJugadorConEstado(n2, out nuevo2);
             int idJugador3 = ConexionBD.RegistrarOObtenerJugadorConEstado(n3, out nuevo3);
 
-            
+
             ConexionBD.InicializarHistorial(idJugador1);
             ConexionBD.InicializarHistorial(idJugador2);
             ConexionBD.InicializarHistorial(idJugador3);
@@ -66,6 +66,7 @@ namespace UNO
             ActualizaTurnoLabel();
 
             boton_uno.Visible = true;
+            boton_uno.Click += new EventHandler(boton_uno_Click);
 
         }
 
@@ -155,14 +156,11 @@ namespace UNO
 
         private void AvanzarTurno()
         {
-            // Cambiamos al siguiente turno según la dirección del juego
+            // Cambiamos al siguiente turno segun la dirección del juego
             turnoActual += direccionJuego;
 
             if (turnoActual > 3) turnoActual = 1;
             if (turnoActual < 1) turnoActual = 3;
-
-            // Reseteamos la bandera del botón UNO para el jugador que ahora toma el turno
-            unoCantadoEnTurno = false;
 
             ActualizaTurnoLabel();
         }
@@ -344,10 +342,8 @@ namespace UNO
         private void RealizaJugada(Carta cartaJugada, PictureBox pictureBoxCarta, bool llamada)
         {
 
-            // Obtenemos el objeto del jugador actual
             Jugador jugadorActualObj = (turnoActual == 1) ? jugador1 : (turnoActual == 2) ? jugador2 : jugador3;
 
-            //si la jugada NO viene del mazo, evaluamos la regla de la ultima carta y el UNO:
             if (!esJugadaDesdeMazo)
             {
                 int cartasEnManoAntesDeJugar = 0;
@@ -355,33 +351,50 @@ namespace UNO
                 else if (turnoActual == 2) cartasEnManoAntesDeJugar = cartas_jugador2.Controls.Count;
                 else if (turnoActual == 3) cartasEnManoAntesDeJugar = cartas_jugador3.Controls.Count;
 
+                // Si el jugador tenía EXACTAMENTE 1 carta ANTES de tirar, significa que esta es su última carta.
                 if (cartasEnManoAntesDeJugar == 1)
                 {
-                    if (!unoCantadoEnTurno)
+                    if (unoCantadoEnTurno)
                     {
-                        MessageBox.Show($"¡{jugadorActualObj.GetNombre()} tiró su última carta pero olvidó decir UNO! Recibe una penalización de 2 cartas y pierde su turno.", "Castigo UNO", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
+                        // ¡Cantó UNO a tiempo! Gana la partida limpiamente
                         ContinuarJugadaNormal(cartaJugada, pictureBoxCarta, llamada);
-                        DarCartasAJugadorEspecifico(jugadorActualObj, 2);
-                        AvanzarTurno();
+                        VerificarGanador();
+                        unoCantadoEnTurno = false; // Reseteamos la bandera
                         return;
                     }
                     else
                     {
+                        // NO cantó UNO: Recibe castigo de 2 cartas y pierde el turno
+                        MessageBox.Show($"¡{jugadorActualObj.GetNombre()} tiró su última carta pero olvidó decir UNO! Recibe una penalización de 2 cartas y pierde su turno.", "Castigo UNO", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
                         ContinuarJugadaNormal(cartaJugada, pictureBoxCarta, llamada);
-                        VerificarGanador();
+                        DarCartasAJugadorEspecifico(jugadorActualObj, 2);
+                        unoCantadoEnTurno = false; // Reseteamos la bandera
+                        AvanzarTurno();
                         return;
                     }
                 }
             }
             else
             {
-                //como la carta venia del mazo, reseteamos la bandera inmediatamente para futuros turnos normales
                 esJugadaDesdeMazo = false;
             }
 
-            //flujo normal para cartas jugadas desde la mano
+            //flujo normal para cuando tira una carta y aun le quedan 2 o mas en la mano
             ContinuarJugadaNormal(cartaJugada, pictureBoxCarta, llamada);
+
+            //Si al tirar esta carta (que era la pen+ultima) el jugador se queda con EXACTAMENTE 1 carta,habilitamos el botón de UNO para que pueda presionarlo en este mismo turno.
+            int cartasRestantesDespuesDeJugar = 0;
+            if (turnoActual == 1) cartasRestantesDespuesDeJugar = cartas_jugador1.Controls.Count;
+            else if (turnoActual == 2) cartasRestantesDespuesDeJugar = cartas_jugador2.Controls.Count;
+            else if (turnoActual == 3) cartasRestantesDespuesDeJugar = cartas_jugador3.Controls.Count;
+
+            if (cartasRestantesDespuesDeJugar == 1)
+            {
+                boton_uno.Visible = true; // Aseguramos que el botón este visible para gritar UNO
+                
+            }
+
             VerificarGanador();
             AplicarEfectoCarta(cartaJugada);
         }
@@ -667,7 +680,7 @@ namespace UNO
 
             unoCantadoEnTurno = true;
             MessageBox.Show("¡UNO!", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            boton_uno.Visible = false;
+            
         }
 
 
@@ -691,6 +704,7 @@ namespace UNO
             VerificarGanador();
             AplicarEfectoCarta(cartaJugada);
         }
+
 
 
         // Método auxiliar para dar cartas a un jugador en específico (por castigos de UNO, etc.)
