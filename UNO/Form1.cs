@@ -68,7 +68,7 @@ namespace UNO
             ActualizaTurnoLabel();
 
             boton_uno.Visible = true;
-            boton_uno.Click += new EventHandler(boton_uno_Click);
+            
 
         }
 
@@ -481,6 +481,26 @@ namespace UNO
 
         private void RobarMazoCarta(object sender, EventArgs e)
         {
+            
+            Carta robada = baraja.Robar_Carta();
+            
+
+            if ( robada == null)
+            {
+                if (cartas_en_pila.Count > 1)
+                {
+                   
+                    baraja.RecargarDesdePila(cartas_en_pila);
+                    MessageBox.Show("¡Se acabaron las cartas del mazo! Se han reciclado las cartas de la pila.", "Baraja Renovada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    robada = baraja.Robar_Carta();
+                }
+                else
+                {
+                    MessageBox.Show("¡Ya no hay cartas disponibles ni en el mazo ni en la pila!", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
             int idJugadorActual = -1;
             if (turnoActual == 1) idJugadorActual = idJugador1;
             else if (turnoActual == 2) idJugadorActual = idJugador2;
@@ -488,83 +508,76 @@ namespace UNO
 
             ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, "Robó una carta del mazo");
 
-            Carta robada = baraja.Robar_Carta();
-            
+            PictureBox imagenCarta = Obtener_Imagen_Carta(robada);
+            if (turnoActual == 1) jugador1.RecibirCarta(robada);
+            else if (turnoActual == 2) jugador2.RecibirCarta(robada);
+            else if (turnoActual == 3) jugador3.RecibirCarta(robada);
 
-            if ( robada == null)
+            if( EsJugadaValida(robada, cartas_en_pila.Last()) )
             {
-                //Barajear las cartas en pilas y agregarlas a baraja
-            }
-            else
-            {
-                PictureBox imagenCarta = Obtener_Imagen_Carta(robada);
-                if (turnoActual == 1) jugador1.RecibirCarta(robada);
-                else if (turnoActual == 2) jugador2.RecibirCarta(robada);
-                else if (turnoActual == 3) jugador3.RecibirCarta(robada);
-
-                if( EsJugadaValida(robada, cartas_en_pila.Last()) )
+                if ( JugadaEstrategica(robada))
                 {
-                    if ( JugadaEstrategica(robada))
-                    {
-                        esJugadaDesdeMazo = true;
-                        RealizaJugada(robada, imagenCarta,false);
-                        return;
+                    esJugadaDesdeMazo = true;
+                    RealizaJugada(robada, imagenCarta,false);
+                    return;
 
-                    }
-                    else
-                    {
-                        MessageBox.Show("Decidiste conservar la carta", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
                 }
                 else
                 {
-                    if (robada.getTipo() == TipoCarta.NUMERO)
-                    {
-                        MessageBox.Show($"La carta que robaste es {robada.getColor()} y numero {robada.getNumero()} por lo tanto no es valida. Haz perdido tu turno", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
-                    else
-                    {
-                        MessageBox.Show($"La carta que robaste es  {robada.getColor()} y de tipo {robada.getTipo()} por lo tanto no es valida. Haz perdido tu turno", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
+                    MessageBox.Show("Decidiste conservar la carta", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-
-                if ( turnoActual == 1)
-                {
-                    imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
-                    imagenCarta.Width = 70;
-                    imagenCarta.Height = 100;
-
-                    imagenCarta.Tag = robada;
-                    imagenCarta.Click += new EventHandler(Carta_Click);
-                    cartas_jugador1.Controls.Add(imagenCarta);
-                }
-                else if( turnoActual == 2)
-                {
-                    imagenCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
-                    imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
-                    imagenCarta.Width = 100;
-                    imagenCarta.Height = 70;
-
-                    imagenCarta.Tag = robada;
-                    imagenCarta.Click += new EventHandler(Carta_Click);
-                    cartas_jugador2.Controls.Add(imagenCarta);
-                }
-                else if(turnoActual == 3)
-                {
-                    imagenCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                    imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
-                    imagenCarta.Width = 100;
-                    imagenCarta.Height = 70;
-
-                    imagenCarta.Tag = robada;
-                    imagenCarta.Click += new EventHandler(Carta_Click);
-                    cartas_jugador3.Controls.Add(imagenCarta);
-                }
-                AvanzarTurno();
-
             }
+            else
+            {
+                if (robada.getTipo() == TipoCarta.NUMERO)
+                {
+                    MessageBox.Show($"La carta que robaste es {robada.getColor()} y numero {robada.getNumero()} por lo tanto no es valida. Haz perdido tu turno", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    MessageBox.Show($"La carta que robaste es  {robada.getColor()} y de tipo {robada.getTipo()} por lo tanto no es valida. Haz perdido tu turno", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            if ( turnoActual == 1)
+            {
+                imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
+                imagenCarta.Width = 70;
+                imagenCarta.Height = 100;
+
+                imagenCarta.Tag = robada;
+                imagenCarta.Click += new EventHandler(Carta_Click);
+                cartas_jugador1.Controls.Add(imagenCarta);
+            }
+            else if( turnoActual == 2)
+            {
+                imagenCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
+                imagenCarta.Width = 100;
+                imagenCarta.Height = 70;
+
+                imagenCarta.Tag = robada;
+                imagenCarta.Click += new EventHandler(Carta_Click);
+                cartas_jugador2.Controls.Add(imagenCarta);
+            }
+            else if(turnoActual == 3)
+            {
+                imagenCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
+                imagenCarta.Width = 100;
+                imagenCarta.Height = 70;
+
+                imagenCarta.Tag = robada;
+                imagenCarta.Click += new EventHandler(Carta_Click);
+                cartas_jugador3.Controls.Add(imagenCarta);
+            }
+            AvanzarTurno();
+
+            
             
         }
+
+
         private PictureBox Obtener_Imagen_Carta(Carta carta)
         {
             PictureBox imagen_carta = new PictureBox();
@@ -628,7 +641,7 @@ namespace UNO
             int idGanador = -1;
             bool hayGanador = false;
 
-            //verificamos el conteo de cartas r
+            //verificamos el conteo de cartas 
             if (cartas_jugador1.Controls.Count == 0)
             {
                 nombreGanador = jugador1.GetNombre();
@@ -666,10 +679,17 @@ namespace UNO
 
                 string nombreCastigado = jugador2.GetNombre(); // O el perdedor correspondiente
                 Form3 ventanaResumen = new Form3(nombreGanador, nombreCastigado);
-                ventanaResumen.ShowDialog(this);
+                
+                DialogResult resultadoResumen= ventanaResumen.ShowDialog(this);
 
-                // Cerramos o reiniciamos el formulario principal
-                this.Close();
+                if ( resultadoResumen == DialogResult.Retry)
+                {
+                    ReiniciarJuego();
+                }
+                else
+                {
+                    this.Close();
+                }
             }
         }
 
@@ -785,6 +805,50 @@ namespace UNO
 
             pila_cartas.Image = pictureBoxCarta.Image;
             cartas_en_pila.Add(cartaJugada);
+        }
+
+        public void ReiniciarJuego()
+        {
+            cartas_jugador1.Controls.Clear();
+            cartas_jugador2.Controls.Clear();
+            cartas_jugador3.Controls.Clear();
+            pila_cartas.Image = null;
+
+            string nombre1 = jugador1.GetNombre();
+            string nombre2 = jugador2.GetNombre();
+            string nombre3 = jugador3.GetNombre();
+
+            jugador1 = new Jugador(nombre1);
+            jugador2 = new Jugador(nombre2);
+            jugador3 = new Jugador(nombre3);
+
+            baraja = new Baraja();
+            baraja.Barajar();
+            cartas_en_pila.Clear();
+
+            turnoActual = 1;
+            direccionJuego = 1;
+            unoCantadoEnTurno = false;
+            esJugadaDesdeMazo = false;
+           
+
+            idPartidaActual = ConexionBD.CrearNuevaPartida();
+
+            Repartir_Cartas();
+            ActualizaTurnoLabel();
+
+            MessageBox.Show("¡Se ha iniciado una nueva partida!", "Reiniciar", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+         
+        //boton para reinicio de juego
+        private void button1_Click(object sender, EventArgs e)
+        {
+            DialogResult respuesta = MessageBox.Show("¿Estás seguro de que deseas reiniciar la partida actual?", "Confirmar Reinicio", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (respuesta == DialogResult.Yes)
+            {
+                ReiniciarJuego();
+            }
         }
     }
     

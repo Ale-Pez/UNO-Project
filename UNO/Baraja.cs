@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class Baraja
 {
@@ -122,6 +123,24 @@ public class Baraja
     public void Regresar_Carta(Carta carta)
     {
         this.cartas.Add(carta);
+        this.Barajar();
+    }
+
+    public void RecargarDesdePila(List<Carta> cartasEnPila)
+    {
+        if (cartasEnPila.Count <= 1) return;
+
+        Carta ultimaCarta = cartasEnPila[cartasEnPila.Count - 1];
+
+        List<Carta> cartasParaReciclar = cartasEnPila.Take(cartasEnPila.Count - 1).ToList();
+
+        cartasEnPila.Clear();
+        cartasEnPila.Add(ultimaCarta);
+
+        foreach (Carta carta in cartasParaReciclar)
+        {
+            this.cartas.Add(carta);
+        }
         this.Barajar();
     }
 }

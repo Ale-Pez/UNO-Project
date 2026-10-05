@@ -64,9 +64,21 @@ namespace UNO
             }
             catch (Exception ex)
             {
-                label2.Text = "❌ ERROR: No se pudo conectar con la API.\r\n\r\n" +
+                label2.Text = "ERROR: No se pudo conectar con la API.\r\n\r\n" +
                               $"Detalles técnicos:\r\n{ex.Message}";
             }
+        }
+
+        private void bttnReinicio_Click(object sender, EventArgs e)
+        {
+            this.DialogResult = DialogResult.Retry; 
+            this.Close();
+        }
+
+        private void bttnSalir_Click(object sender, EventArgs e)
+        {
+            this.DialogResult = DialogResult.Cancel; 
+            this.Close();
         }
     }
 
