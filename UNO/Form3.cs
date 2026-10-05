@@ -64,10 +64,12 @@ namespace UNO
             }
             catch (Exception ex)
             {
-                label2.Text = "❌ ERROR: No se pudo conectar con la API.\r\n\r\n" +
+                label2.Text = "ERROR: No se pudo conectar con la API.\r\n\r\n" +
                               $"Detalles técnicos:\r\n{ex.Message}";
             }
         }
+
+        
     }
 
     public class JugadorDto

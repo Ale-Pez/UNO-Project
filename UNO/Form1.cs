@@ -799,6 +799,50 @@ namespace UNO
             pila_cartas.Image = pictureBoxCarta.Image;
             cartas_en_pila.Add(cartaJugada);
         }
+
+        public void ReiniciarJuego()
+        {
+            cartas_jugador1.Controls.Clear();
+            cartas_jugador2.Controls.Clear();
+            cartas_jugador3.Controls.Clear();
+            pila_cartas.Image = null;
+
+            string nombre1 = jugador1.GetNombre();
+            string nombre2 = jugador2.GetNombre();
+            string nombre3 = jugador3.GetNombre();
+
+            jugador1 = new Jugador(nombre1);
+            jugador2 = new Jugador(nombre2);
+            jugador3 = new Jugador(nombre3);
+
+            baraja = new Baraja();
+            baraja.Barajar();
+            cartas_en_pila.Clear();
+
+            turnoActual = 1;
+            direccionJuego = 1;
+            unoCantadoEnTurno = false;
+            esJugadaDesdeMazo = false;
+           
+
+            idPartidaActual = ConexionBD.CrearNuevaPartida();
+
+            Repartir_Cartas();
+            ActualizaTurnoLabel();
+
+            MessageBox.Show("¡Se ha iniciado una nueva partida!", "Reiniciar", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+         
+        //boton para reinicio de juego
+        private void button1_Click(object sender, EventArgs e)
+        {
+            DialogResult respuesta = MessageBox.Show("¿Estás seguro de que deseas reiniciar la partida actual?", "Confirmar Reinicio", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (respuesta == DialogResult.Yes)
+            {
+                ReiniciarJuego();
+            }
+        }
     }
     
     
