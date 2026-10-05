@@ -68,7 +68,7 @@ namespace UNO
             ActualizaTurnoLabel();
 
             boton_uno.Visible = true;
-            boton_uno.Click += new EventHandler(boton_uno_Click);
+            
 
         }
 
@@ -641,7 +641,7 @@ namespace UNO
             int idGanador = -1;
             bool hayGanador = false;
 
-            //verificamos el conteo de cartas r
+            //verificamos el conteo de cartas 
             if (cartas_jugador1.Controls.Count == 0)
             {
                 nombreGanador = jugador1.GetNombre();
@@ -679,10 +679,17 @@ namespace UNO
 
                 string nombreCastigado = jugador2.GetNombre(); // O el perdedor correspondiente
                 Form3 ventanaResumen = new Form3(nombreGanador, nombreCastigado);
-                ventanaResumen.ShowDialog(this);
+                
+                DialogResult resultadoResumen= ventanaResumen.ShowDialog(this);
 
-                // Cerramos o reiniciamos el formulario principal
-                this.Close();
+                if ( resultadoResumen == DialogResult.Retry)
+                {
+                    ReiniciarJuego();
+                }
+                else
+                {
+                    this.Close();
+                }
             }
         }
 

@@ -69,7 +69,17 @@ namespace UNO
             }
         }
 
-        
+        private void bttnReinicio_Click(object sender, EventArgs e)
+        {
+            this.DialogResult = DialogResult.Retry; 
+            this.Close();
+        }
+
+        private void bttnSalir_Click(object sender, EventArgs e)
+        {
+            this.DialogResult = DialogResult.Cancel; 
+            this.Close();
+        }
     }
 
     public class JugadorDto
