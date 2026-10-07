@@ -11,12 +11,12 @@ using System.Windows.Forms;
 
 namespace UNO
 {
-    public partial class Regsitro : Form
+    public partial class Regitsro : Form
     {
         //popiedad que lee Form2 para extraer el nombre ingresado
         public string UsuarioRegistrado { get; private set; }
 
-        public Regsitro()
+        public Regitsro()
         {
             InitializeComponent();
 
@@ -25,7 +25,7 @@ namespace UNO
             this.MaximizeBox = false;
         }
 
-        private void boton_registrar_Click(object sender, EventArgs e)
+        private async void boton_registrar_Click(object sender, EventArgs e)
         {
             string usuario = textBox1.Text.Trim();
 
@@ -47,20 +47,37 @@ namespace UNO
                 // Mensaje personalizado según el estado del usuario
                 if (esNuevo)
                 {
-                    MessageBox.Show($"¡Bienvenido, {usuario}! Te hemos registrado como nuevo jugador.", "Nuevo Registro", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Pausamos 1 segundo (1000 ms) para que el usuario alcance a leer el texto
+                    label5.Text= "Te registramos como nuevo usuario!";
+                    await Task.Delay(1000);
                 }
                 else
                 {
-                    MessageBox.Show($"Bienveenido de nuevo,{usuario}! Hemos cargado tu historial.", "Usuario Existente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    label5.Text = "Bienvenido de nuevo!";
+                    await Task.Delay(1000);
                 }
+
+                // Forzamos a que Windows dibuje el cambio en pantalla inmediatamente
+                label5.Refresh();
 
                 //guardamos el nombre y cerramos para continuar con el siguiente jugador
                 UsuarioRegistrado = usuario;
                 this.DialogResult = DialogResult.OK;
+             
                 this.Close();
             }
         }
         private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Regsitro_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label5_Click(object sender, EventArgs e)
         {
 
         }

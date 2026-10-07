@@ -17,7 +17,6 @@ namespace UNO
         {
             InitializeComponent();
             ganadorPartida = nombreGanador;
-            castigadoPartida = nombreCastigado;
         }
 
         private async void Form3_Load(object sender, EventArgs e)
