@@ -6,7 +6,7 @@ namespace UNO
 {
     public static class ConexionBD
     {
-        private static string connStr = "Server=127.0.0.1;Port=3306;Database=juego_uno;Uid=root;Pwd=M1234";
+        private static string connStr = "Server=127.0.0.1;Port=3306;Database=juego_uno;Uid=root;Pwd=VaRCHAR3006@";
         public static int RegistrarOObtenerJugadorConEstado(string nombreJugador, out bool esNuevo)
         {
             int idJugador = -1;

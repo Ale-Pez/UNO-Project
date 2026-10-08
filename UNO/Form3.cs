@@ -46,7 +46,7 @@ namespace UNO
                 string resumenFormateado = "========================================\r\n";
 
                 // Resultados de la partida actual
-                resumenFormateado += $"🏆 GANADOR DE LA PARTIDA:\r\n {ganadorPartida.ToUpper()}\r\n";
+                resumenFormateado += $"GANADOR DE LA PARTIDA:\r\n {ganadorPartida.ToUpper()}\r\n";
            
                 resumenFormateado += "========================================\r\n";
                 resumenFormateado += "Ranking Global de Ganadores:\r\n\r\n";
