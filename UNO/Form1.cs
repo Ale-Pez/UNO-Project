@@ -30,6 +30,7 @@ namespace UNO
         private int idJugador2 = -1;
         private int idJugador3 = -1;
         private int idPartidaActual = 1;
+        private Timer timerAviso;
         public Form1(string n1, string n2, string n3)
         {
 
@@ -62,6 +63,11 @@ namespace UNO
             groupBox1.Text = n1;
             groupBox2.Text = n2;
             groupBox3.Text = n3;
+
+            //creamos el evento del timer
+            timerAviso = new Timer();
+            timerAviso.Interval = 2500;
+            timerAviso.Tick += new EventHandler(timerAviso_Tick);
 
             //repartimos las cartas en el tablero
             Repartir_Cartas();
@@ -196,6 +202,20 @@ namespace UNO
             return false; // si no cumple ninguna es invalida
         }
 
+        //evento Aviso timer y se ejecuta cuando termina para limpiar el mensaje
+        private void timerAviso_Tick(object sender, EventArgs e)
+        {
+            timerAviso.Stop();         
+            lblAvisoTemp.Text = ""; 
+        }
+        // muestra el mensaje del label
+        private void MostrarAvisoTemporal(string mensaje)
+        {
+            lblAvisoTemp.Text = mensaje; 
+            timerAviso.Stop(); // si ya habiera uno corriendo lo reinicmos
+            timerAviso.Start();              
+        }
+
         private void AplicarEfectoCarta(Carta cartaJugada)
         {
             switch (cartaJugada.getTipo())
@@ -213,18 +233,18 @@ namespace UNO
 
                 case TipoCarta.BLOQUEA:
                     AvanzarTurno();
-                    if (turnoActual == 1) MessageBox.Show($"{jugador1.GetNombre()} pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else if (turnoActual == 2) MessageBox.Show($"{jugador2.GetNombre()} pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else if (turnoActual == 3) MessageBox.Show($"{jugador3.GetNombre()} pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (turnoActual == 1) MostrarAvisoTemporal($"{jugador1.GetNombre()} has sido bloqueado");
+                    else if (turnoActual == 2) MostrarAvisoTemporal($"{jugador2.GetNombre()} has sido bloqueado");
+                    else if (turnoActual == 3) MostrarAvisoTemporal($"{jugador3.GetNombre()} has sido bloqueado");
                     AvanzarTurno();
                     break;
 
                 case TipoCarta.MASDOS:
                     DarCartasASiguienteJugador(2); //cuando un jugador come por un +2 pierde su turno
                     AvanzarTurno();
-                    if ( turnoActual== 1) MessageBox.Show($"{jugador1.GetNombre()} comes 2 y pierdes tu turno :(","Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else if (turnoActual == 2) MessageBox.Show($"{jugador2.GetNombre()} comes 2 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else if ( turnoActual == 3) MessageBox.Show($"{jugador3.GetNombre()} comes 2 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if ( turnoActual== 1) MostrarAvisoTemporal($"{jugador1.GetNombre()} comes 2 y pierdes tu turno");
+                    else if (turnoActual == 2) MostrarAvisoTemporal($"{jugador2.GetNombre()} comes 2 y pierdes tu turno");
+                    else if ( turnoActual == 3) MostrarAvisoTemporal($"{jugador3.GetNombre()} comes 2 y pierdes tu turno");
                     AvanzarTurno();
                     break;
 
@@ -233,9 +253,9 @@ namespace UNO
                     cartaJugada.setColor(colorElegidoMas4);
                     DarCartasASiguienteJugador(4); //cuando un jugador come por un +4 pierde su turno
                     AvanzarTurno();
-                    if (turnoActual == 1) MessageBox.Show($"{jugador1.GetNombre()} comes 4 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else if (turnoActual == 2) MessageBox.Show($"{jugador2.GetNombre()} comes 4 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else if (turnoActual == 3) MessageBox.Show($"{jugador3.GetNombre()} comes 4 y pierdes tu turno :(", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    if (turnoActual == 1) MostrarAvisoTemporal($"{jugador1.GetNombre()} comes 4 y pierdes tu turno");
+                    else if (turnoActual == 2) MostrarAvisoTemporal($"{jugador2.GetNombre()} comes 4 y pierdes tu turno");
+                    else if (turnoActual == 3) MostrarAvisoTemporal($"{jugador3.GetNombre()} comes 4 y pierdes tu turno");
                     AvanzarTurno();
                     break;
 
@@ -849,6 +869,11 @@ namespace UNO
             {
                 ReiniciarJuego();
             }
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
         }
     }
     
