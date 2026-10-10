@@ -72,10 +72,32 @@ namespace UNO
             //repartimos las cartas en el tablero
             Repartir_Cartas();
             ActualizaTurnoLabel();
+            CentrarControles();
 
             boton_uno.Visible = true;
-            
+        }
 
+        private void CentrarControles()
+        {
+            // CENTRADO DE BOTÓN REINICIO
+            this.boton_reinicio.Left = (this.panel_Superior_GroupBox4.ClientSize.Width - this.boton_reinicio.Width) / 2;
+            this.boton_reinicio.Top = (this.panel_Superior_GroupBox4.ClientSize.Height - this.boton_reinicio.Height) / 2;
+
+            // CENTRADO DE ETIQUETA TURNO
+            this.lblTurno.Left = (this.panel_Superior_GroupBox4.ClientSize.Width - this.lblTurno.Width) / 2;
+            this.lblTurno.Top = (this.panel_Superior_GroupBox4.ClientSize.Height - this.boton_reinicio.Height) / 2 - this.lblTurno.Height;
+
+            // CENTRADO DE BOTÓN UNO
+            this.boton_uno.Left = (this.panel_Inferior_GroupBox4.ClientSize.Width - this.boton_uno.Width) / 2;
+            this.boton_uno.Top = (this.panel_Inferior_GroupBox4.ClientSize.Height - this.boton_uno.Height) / 2;
+
+            // TEXTO EMERGENTE AL COLOCAR EL PUNTERO SOBRE EL MAZO O LA PILA
+            this.toolTip1.SetToolTip(this.mazo_cartas, "Mazo de cartas");
+            this.toolTip1.SetToolTip(this.pila_cartas, "Pila de cartas");
+
+            // TEXTO DESCRIPTIVO DE JUGADAS
+            this.lblAvisoTemp.Left = this.lblAvisoTemp.Width + 50;
+            this.lblAvisoTemp.Top = this.lblAvisoTemp.Height + 100;
         }
 
         private void Repartir_Cartas()
@@ -205,15 +227,15 @@ namespace UNO
         //evento Aviso timer y se ejecuta cuando termina para limpiar el mensaje
         private void timerAviso_Tick(object sender, EventArgs e)
         {
-            timerAviso.Stop();         
-            lblAvisoTemp.Text = ""; 
+            timerAviso.Stop();
+            lblAvisoTemp.Text = "";
         }
         // muestra el mensaje del label
         private void MostrarAvisoTemporal(string mensaje)
         {
-            lblAvisoTemp.Text = mensaje; 
+            lblAvisoTemp.Text = mensaje;
             timerAviso.Stop(); // si ya habiera uno corriendo lo reinicmos
-            timerAviso.Start();              
+            timerAviso.Start();
         }
 
         private void AplicarEfectoCarta(Carta cartaJugada)
@@ -242,9 +264,9 @@ namespace UNO
                 case TipoCarta.MASDOS:
                     DarCartasASiguienteJugador(2); //cuando un jugador come por un +2 pierde su turno
                     AvanzarTurno();
-                    if ( turnoActual== 1) MostrarAvisoTemporal($"{jugador1.GetNombre()} comes 2 y pierdes tu turno");
+                    if (turnoActual == 1) MostrarAvisoTemporal($"{jugador1.GetNombre()} comes 2 y pierdes tu turno");
                     else if (turnoActual == 2) MostrarAvisoTemporal($"{jugador2.GetNombre()} comes 2 y pierdes tu turno");
-                    else if ( turnoActual == 3) MostrarAvisoTemporal($"{jugador3.GetNombre()} comes 2 y pierdes tu turno");
+                    else if (turnoActual == 3) MostrarAvisoTemporal($"{jugador3.GetNombre()} comes 2 y pierdes tu turno");
                     AvanzarTurno();
                     break;
 
@@ -291,7 +313,7 @@ namespace UNO
                     card.Width = 70;
                     card.Height = 100;
 
-                    card.Tag = robada; 
+                    card.Tag = robada;
                     card.Click += new EventHandler(Carta_Click);
                     cartas_jugador1.Controls.Add(card);
                 }
@@ -303,7 +325,7 @@ namespace UNO
                     card.Width = 100;
                     card.Height = 70;
 
-                    card.Tag = robada; 
+                    card.Tag = robada;
                     card.Click += new EventHandler(Carta_Click);
                     cartas_jugador2.Controls.Add(card);
                 }
@@ -333,14 +355,14 @@ namespace UNO
             Carta cartaSeleccionada = pictureBoxClickeado.Tag as Carta;
             if (cartaSeleccionada == null) return;
 
-           
+
             if (!validaTurno(pictureBoxClickeado))
             {
                 MessageBox.Show("¡No es tu turno!", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-         
+
             Carta cartaEnPila = cartas_en_pila.Last();
             if (!EsJugadaValida(cartaSeleccionada, cartaEnPila))
             {
@@ -353,7 +375,7 @@ namespace UNO
 
         private bool validaTurno(PictureBox pb)
         {
-          
+
             if (turnoActual == 1 && cartas_jugador1.Controls.Contains(pb)) return true;
             if (turnoActual == 2 && cartas_jugador2.Controls.Contains(pb)) return true;
             if (turnoActual == 3 && cartas_jugador3.Controls.Contains(pb)) return true;
@@ -414,7 +436,7 @@ namespace UNO
             if (cartasRestantesDespuesDeJugar == 1)
             {
                 boton_uno.Visible = true; // Aseguramos que el botón este visible para gritar UNO
-                
+
             }
 
             VerificarGanador();
@@ -460,7 +482,7 @@ namespace UNO
 
         private bool JugadaEstrategica(Carta cartaRobada)
         {
-    
+
             bool opcion = false;
 
             Form ventanaJugada = new Form()
@@ -483,33 +505,33 @@ namespace UNO
             pbCarta.Top = 45;
             ventanaJugada.Controls.Add(pbCarta);
 
-            Button si = new Button() { Text = "Si", Left = 50, Top = 155, Width=70, BackColor = Color.Green, ForeColor = Color.White };
-            Button no = new Button() { Text = "No", Left = 140, Top = 155, Width=70, BackColor = Color.Red, ForeColor= Color.White };
-            
+            Button si = new Button() { Text = "Si", Left = 50, Top = 155, Width = 70, BackColor = Color.Green, ForeColor = Color.White };
+            Button no = new Button() { Text = "No", Left = 140, Top = 155, Width = 70, BackColor = Color.Red, ForeColor = Color.White };
+
 
             // asignamos eventos a los botones
             si.Click += (s, e) => { opcion = true; ventanaJugada.Close(); };
             no.Click += (s, e) => { opcion = false; ventanaJugada.Close(); };
-            
+
 
             ventanaJugada.Controls.Add(si);
             ventanaJugada.Controls.Add(no);
-            
-            ventanaJugada.ShowDialog(); 
+
+            ventanaJugada.ShowDialog();
             return opcion;
         }
 
         private void RobarMazoCarta(object sender, EventArgs e)
         {
-            
-            Carta robada = baraja.Robar_Carta();
-            
 
-            if ( robada == null)
+            Carta robada = baraja.Robar_Carta();
+
+
+            if (robada == null)
             {
                 if (cartas_en_pila.Count > 1)
                 {
-                   
+
                     baraja.RecargarDesdePila(cartas_en_pila);
                     MessageBox.Show("¡Se acabaron las cartas del mazo! Se han reciclado las cartas de la pila.", "Baraja Renovada", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     robada = baraja.Robar_Carta();
@@ -533,12 +555,12 @@ namespace UNO
             else if (turnoActual == 2) jugador2.RecibirCarta(robada);
             else if (turnoActual == 3) jugador3.RecibirCarta(robada);
 
-            if( EsJugadaValida(robada, cartas_en_pila.Last()) )
+            if (EsJugadaValida(robada, cartas_en_pila.Last()))
             {
-                if ( JugadaEstrategica(robada))
+                if (JugadaEstrategica(robada))
                 {
                     esJugadaDesdeMazo = true;
-                    RealizaJugada(robada, imagenCarta,false);
+                    RealizaJugada(robada, imagenCarta, false);
                     return;
 
                 }
@@ -559,7 +581,7 @@ namespace UNO
                 }
             }
 
-            if ( turnoActual == 1)
+            if (turnoActual == 1)
             {
                 imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
                 imagenCarta.Width = 70;
@@ -569,7 +591,7 @@ namespace UNO
                 imagenCarta.Click += new EventHandler(Carta_Click);
                 cartas_jugador1.Controls.Add(imagenCarta);
             }
-            else if( turnoActual == 2)
+            else if (turnoActual == 2)
             {
                 imagenCarta.Image.RotateFlip(RotateFlipType.Rotate270FlipNone);
                 imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -580,7 +602,7 @@ namespace UNO
                 imagenCarta.Click += new EventHandler(Carta_Click);
                 cartas_jugador2.Controls.Add(imagenCarta);
             }
-            else if(turnoActual == 3)
+            else if (turnoActual == 3)
             {
                 imagenCarta.Image.RotateFlip(RotateFlipType.Rotate90FlipNone);
                 imagenCarta.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -593,8 +615,8 @@ namespace UNO
             }
             AvanzarTurno();
 
-            
-            
+
+
         }
 
 
@@ -654,7 +676,7 @@ namespace UNO
             return imagen_carta;
         }
 
-       
+
         private void VerificarGanador()
         {
             string nombreGanador = "";
@@ -677,7 +699,7 @@ namespace UNO
             else if (cartas_jugador3.Controls.Count == 0)
             {
                 nombreGanador = jugador3.GetNombre();
-                idGanador= idJugador3;
+                idGanador = idJugador3;
                 hayGanador = true;
             }
 
@@ -685,7 +707,7 @@ namespace UNO
             {
                 ConexionBD.FinalizarPartida(idPartidaActual, nombreGanador);
 
-                ConexionBD.RegistrarResultadoPartida(idGanador, true); 
+                ConexionBD.RegistrarResultadoPartida(idGanador, true);
 
                 // a los otros dos jugadores se les registra la derrota 
                 if (idGanador != idJugador1) ConexionBD.RegistrarResultadoPartida(idJugador1, false);
@@ -699,10 +721,10 @@ namespace UNO
 
                 string nombreCastigado = jugador2.GetNombre(); // O el perdedor correspondiente
                 Form3 ventanaResumen = new Form3(nombreGanador, nombreCastigado);
-                
-                DialogResult resultadoResumen= ventanaResumen.ShowDialog(this);
 
-                if ( resultadoResumen == DialogResult.Retry)
+                DialogResult resultadoResumen = ventanaResumen.ShowDialog(this);
+
+                if (resultadoResumen == DialogResult.Retry)
                 {
                     ReiniciarJuego();
                 }
@@ -713,28 +735,12 @@ namespace UNO
             }
         }
 
-        private void groupBox3_Enter(object sender, EventArgs e)
-        {}
-
-        private void groupBox2_Enter(object sender, EventArgs e)
-        {}
-
-        private void groupBox4_Enter(object sender, EventArgs e)
-        {
-        
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
         private void boton_uno_Click(object sender, EventArgs e)
         {
 
             unoCantadoEnTurno = true;
             MessageBox.Show("¡UNO!", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            
+
         }
 
 
@@ -850,7 +856,7 @@ namespace UNO
             direccionJuego = 1;
             unoCantadoEnTurno = false;
             esJugadaDesdeMazo = false;
-           
+
 
             idPartidaActual = ConexionBD.CrearNuevaPartida();
 
@@ -859,7 +865,7 @@ namespace UNO
 
             MessageBox.Show("¡Se ha iniciado una nueva partida!", "Reiniciar", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-         
+
         //boton para reinicio de juego
         private void button1_Click(object sender, EventArgs e)
         {
@@ -870,12 +876,5 @@ namespace UNO
                 ReiniciarJuego();
             }
         }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
     }
-    
-    
 }
