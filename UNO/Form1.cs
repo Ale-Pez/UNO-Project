@@ -94,6 +94,10 @@ namespace UNO
             // TEXTO EMERGENTE AL COLOCAR EL PUNTERO SOBRE EL MAZO O LA PILA
             this.toolTip1.SetToolTip(this.mazo_cartas, "Mazo de cartas");
             this.toolTip1.SetToolTip(this.pila_cartas, "Pila de cartas");
+
+            // TEXTO DESCRIPTIVO DE JUGADAS
+            this.lblAvisoTemp.Left = this.lblAvisoTemp.Width + 50;
+            this.lblAvisoTemp.Top = this.lblAvisoTemp.Height + 100;
         }
 
         private void Repartir_Cartas()

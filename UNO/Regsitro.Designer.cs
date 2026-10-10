@@ -77,7 +77,7 @@
             // textBox1
             // 
             this.textBox1.Location = new System.Drawing.Point(38, 84);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.textBox1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(153, 20);
             this.textBox1.TabIndex = 3;
@@ -86,7 +86,7 @@
             // 
             this.boton_registrar.BackColor = System.Drawing.Color.Lime;
             this.boton_registrar.Location = new System.Drawing.Point(77, 122);
-            this.boton_registrar.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.boton_registrar.Margin = new System.Windows.Forms.Padding(2);
             this.boton_registrar.Name = "boton_registrar";
             this.boton_registrar.Size = new System.Drawing.Size(80, 24);
             this.boton_registrar.TabIndex = 4;
@@ -131,11 +131,11 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.MaximizeBox = false;
             this.Name = "Regitsro";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Regsitro";
+            this.Text = "Registro";
             this.Load += new System.EventHandler(this.Regsitro_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

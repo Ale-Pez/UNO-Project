@@ -13,7 +13,7 @@ namespace UNO
 {
     public partial class Regitsro : Form
     {
-        //popiedad que lee Form2 para extraer el nombre ingresado
+        // Propiedad que lee Form2 para extraer el nombre ingresado
         public string UsuarioRegistrado { get; private set; }
 
         public Regitsro()
