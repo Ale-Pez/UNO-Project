@@ -21,7 +21,7 @@ namespace UNO
         private Jugador jugador3;
         private int turnoActual = 1; //jug 1 = 1, jug 2 = 2, ....
         private int direccionJuego = 1; // direccion normal 1 y para cuando va en reversa -1
-
+        private ColorCarta colorActualJuego;
         private bool unoCantadoEnTurno = false;
         private bool esJugadaDesdeMazo = false;
 
@@ -170,6 +170,7 @@ namespace UNO
                     pila_cartas.Height = 100;
 
                     cartas_en_pila.Add(carta_inicial);
+                    Actualizar_Color_Actual(carta_inicial.getColor());
                 }
 
             } while (carta_inicial == null);
@@ -245,6 +246,7 @@ namespace UNO
                 case TipoCarta.COMODIN:
                     ColorCarta colorElegidoComodin = SolicitarEleccionColor(); //el jugaedor selecciona el nuevo color
                     cartaJugada.setColor(colorElegidoComodin);
+                    Actualizar_Color_Actual(colorElegidoComodin);
                     AvanzarTurno();
                     break;
 
@@ -278,6 +280,7 @@ namespace UNO
                     if (turnoActual == 1) MostrarAvisoTemporal($"{jugador1.GetNombre()} comes 4 y pierdes tu turno");
                     else if (turnoActual == 2) MostrarAvisoTemporal($"{jugador2.GetNombre()} comes 4 y pierdes tu turno");
                     else if (turnoActual == 3) MostrarAvisoTemporal($"{jugador3.GetNombre()} comes 4 y pierdes tu turno");
+                    Actualizar_Color_Actual(colorElegidoMas4);
                     AvanzarTurno();
                     break;
 
@@ -831,6 +834,7 @@ namespace UNO
 
             pila_cartas.Image = pictureBoxCarta.Image;
             cartas_en_pila.Add(cartaJugada);
+            Actualizar_Color_Actual(cartaJugada.getColor());
         }
 
         public void ReiniciarJuego()
@@ -875,6 +879,32 @@ namespace UNO
             {
                 ReiniciarJuego();
             }
+        }
+
+        private void Actualizar_Color_Actual(ColorCarta color)
+        {
+            this.colorActualJuego = color;
+
+            switch (colorActualJuego)
+            {
+                case ColorCarta.ROJO:
+                    this.icono_color_juego.Image = Properties.Resources.red;
+                    break;
+
+                case ColorCarta.AZUL:
+                    this.icono_color_juego.Image = Properties.Resources.blue;
+                    break;
+
+                case ColorCarta.AMARILLO:
+                    this.icono_color_juego.Image = Properties.Resources.yellow;
+                    break;
+
+                case ColorCarta.VERDE:
+                    this.icono_color_juego.Image = Properties.Resources.green;
+                    break;
+            }
+
+            this.icono_color_juego.SizeMode = PictureBoxSizeMode.StretchImage;
         }
     }
 }
