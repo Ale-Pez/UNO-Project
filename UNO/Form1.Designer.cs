@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.panel1 = new System.Windows.Forms.Panel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.cartas_jugador1 = new System.Windows.Forms.FlowLayoutPanel();
@@ -39,13 +40,17 @@
             this.cartas_jugador3 = new System.Windows.Forms.FlowLayoutPanel();
             this.panel4 = new System.Windows.Forms.Panel();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.boton_uno = new System.Windows.Forms.Button();
+            this.lblAvisoTemp = new System.Windows.Forms.Label();
+            this.panel_Superior_GroupBox4 = new System.Windows.Forms.Panel();
+            this.boton_reinicio = new System.Windows.Forms.Button();
             this.lblTurno = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.pila_cartas = new System.Windows.Forms.PictureBox();
+            this.panel_Inferior_GroupBox4 = new System.Windows.Forms.Panel();
+            this.boton_uno = new System.Windows.Forms.Button();
+            this.panel_Central_GroupBox4 = new System.Windows.Forms.Panel();
             this.mazo_cartas = new System.Windows.Forms.PictureBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.pila_cartas = new System.Windows.Forms.PictureBox();
+            this.icono_color_juego = new System.Windows.Forms.PictureBox();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.panel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -54,8 +59,12 @@
             this.groupBox3.SuspendLayout();
             this.panel4.SuspendLayout();
             this.groupBox4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).BeginInit();
+            this.panel_Superior_GroupBox4.SuspendLayout();
+            this.panel_Inferior_GroupBox4.SuspendLayout();
+            this.panel_Central_GroupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mazo_cartas)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.icono_color_juego)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -85,9 +94,9 @@
             // 
             this.cartas_jugador1.AutoScroll = true;
             this.cartas_jugador1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.cartas_jugador1.Location = new System.Drawing.Point(3, 28);
+            this.cartas_jugador1.Location = new System.Drawing.Point(3, 23);
             this.cartas_jugador1.Name = "cartas_jugador1";
-            this.cartas_jugador1.Size = new System.Drawing.Size(878, 109);
+            this.cartas_jugador1.Size = new System.Drawing.Size(878, 114);
             this.cartas_jugador1.TabIndex = 0;
             this.cartas_jugador1.WrapContents = false;
             // 
@@ -113,16 +122,15 @@
             this.groupBox2.TabIndex = 0;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Jugador 2";
-            this.groupBox2.Enter += new System.EventHandler(this.groupBox2_Enter);
             // 
             // cartas_jugador2
             // 
             this.cartas_jugador2.AutoScroll = true;
             this.cartas_jugador2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.cartas_jugador2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.cartas_jugador2.Location = new System.Drawing.Point(3, 28);
+            this.cartas_jugador2.Location = new System.Drawing.Point(3, 23);
             this.cartas_jugador2.Name = "cartas_jugador2";
-            this.cartas_jugador2.Size = new System.Drawing.Size(144, 590);
+            this.cartas_jugador2.Size = new System.Drawing.Size(144, 595);
             this.cartas_jugador2.TabIndex = 0;
             this.cartas_jugador2.WrapContents = false;
             // 
@@ -148,16 +156,15 @@
             this.groupBox3.TabIndex = 0;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Jugador 3";
-            this.groupBox3.Enter += new System.EventHandler(this.groupBox3_Enter);
             // 
             // cartas_jugador3
             // 
             this.cartas_jugador3.AutoScroll = true;
             this.cartas_jugador3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.cartas_jugador3.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
-            this.cartas_jugador3.Location = new System.Drawing.Point(3, 28);
+            this.cartas_jugador3.Location = new System.Drawing.Point(3, 23);
             this.cartas_jugador3.Name = "cartas_jugador3";
-            this.cartas_jugador3.Size = new System.Drawing.Size(144, 590);
+            this.cartas_jugador3.Size = new System.Drawing.Size(144, 595);
             this.cartas_jugador3.TabIndex = 0;
             this.cartas_jugador3.WrapContents = false;
             // 
@@ -173,13 +180,10 @@
             // 
             // groupBox4
             // 
-            this.groupBox4.Controls.Add(this.button1);
-            this.groupBox4.Controls.Add(this.boton_uno);
-            this.groupBox4.Controls.Add(this.lblTurno);
-            this.groupBox4.Controls.Add(this.label2);
-            this.groupBox4.Controls.Add(this.label1);
-            this.groupBox4.Controls.Add(this.pila_cartas);
-            this.groupBox4.Controls.Add(this.mazo_cartas);
+            this.groupBox4.Controls.Add(this.lblAvisoTemp);
+            this.groupBox4.Controls.Add(this.panel_Superior_GroupBox4);
+            this.groupBox4.Controls.Add(this.panel_Inferior_GroupBox4);
+            this.groupBox4.Controls.Add(this.panel_Central_GroupBox4);
             this.groupBox4.Cursor = System.Windows.Forms.Cursors.Hand;
             this.groupBox4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBox4.ForeColor = System.Drawing.SystemColors.Control;
@@ -188,86 +192,124 @@
             this.groupBox4.Size = new System.Drawing.Size(584, 621);
             this.groupBox4.TabIndex = 0;
             this.groupBox4.TabStop = false;
-            this.groupBox4.Enter += new System.EventHandler(this.groupBox4_Enter);
+            // 
+            // lblAvisoTemp
+            // 
+            this.lblAvisoTemp.AutoSize = true;
+            this.lblAvisoTemp.BackColor = System.Drawing.Color.Transparent;
+            this.lblAvisoTemp.Font = new System.Drawing.Font("Nirmala UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblAvisoTemp.Location = new System.Drawing.Point(377, 24);
+            this.lblAvisoTemp.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.lblAvisoTemp.Name = "lblAvisoTemp";
+            this.lblAvisoTemp.Size = new System.Drawing.Size(0, 21);
+            this.lblAvisoTemp.TabIndex = 4;
+            // 
+            // panel_Superior_GroupBox4
+            // 
+            this.panel_Superior_GroupBox4.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.panel_Superior_GroupBox4.Controls.Add(this.boton_reinicio);
+            this.panel_Superior_GroupBox4.Controls.Add(this.lblTurno);
+            this.panel_Superior_GroupBox4.Location = new System.Drawing.Point(3, 16);
+            this.panel_Superior_GroupBox4.Name = "panel_Superior_GroupBox4";
+            this.panel_Superior_GroupBox4.Size = new System.Drawing.Size(578, 100);
+            this.panel_Superior_GroupBox4.TabIndex = 6;
+            // 
+            // boton_reinicio
+            // 
+            this.boton_reinicio.Anchor = System.Windows.Forms.AnchorStyles.Top;
+            this.boton_reinicio.BackColor = System.Drawing.Color.Yellow;
+            this.boton_reinicio.Font = new System.Drawing.Font("Nirmala UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.boton_reinicio.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.boton_reinicio.Location = new System.Drawing.Point(217, 8);
+            this.boton_reinicio.Name = "boton_reinicio";
+            this.boton_reinicio.Size = new System.Drawing.Size(157, 41);
+            this.boton_reinicio.TabIndex = 5;
+            this.boton_reinicio.Text = "¡Reiniciar Juego!";
+            this.boton_reinicio.UseVisualStyleBackColor = false;
+            this.boton_reinicio.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // lblTurno
+            // 
+            this.lblTurno.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.lblTurno.AutoSize = true;
+            this.lblTurno.BackColor = System.Drawing.Color.Transparent;
+            this.lblTurno.Font = new System.Drawing.Font("Nirmala UI", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTurno.Location = new System.Drawing.Point(262, 64);
+            this.lblTurno.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.lblTurno.Name = "lblTurno";
+            this.lblTurno.Size = new System.Drawing.Size(75, 25);
+            this.lblTurno.TabIndex = 4;
+            this.lblTurno.Text = "Turno: ";
+            // 
+            // panel_Inferior_GroupBox4
+            // 
+            this.panel_Inferior_GroupBox4.Controls.Add(this.boton_uno);
+            this.panel_Inferior_GroupBox4.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel_Inferior_GroupBox4.Location = new System.Drawing.Point(3, 518);
+            this.panel_Inferior_GroupBox4.Name = "panel_Inferior_GroupBox4";
+            this.panel_Inferior_GroupBox4.Size = new System.Drawing.Size(578, 100);
+            this.panel_Inferior_GroupBox4.TabIndex = 7;
             // 
             // boton_uno
             // 
+            this.boton_uno.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.boton_uno.BackColor = System.Drawing.Color.Yellow;
             this.boton_uno.Cursor = System.Windows.Forms.Cursors.Hand;
             this.boton_uno.Font = new System.Drawing.Font("Nirmala UI", 20.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.boton_uno.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.boton_uno.Location = new System.Drawing.Point(445, 528);
+            this.boton_uno.Location = new System.Drawing.Point(238, 33);
             this.boton_uno.Name = "boton_uno";
-            this.boton_uno.Size = new System.Drawing.Size(120, 60);
+            this.boton_uno.Size = new System.Drawing.Size(109, 47);
             this.boton_uno.TabIndex = 4;
             this.boton_uno.Text = "¡UNO!";
             this.boton_uno.UseVisualStyleBackColor = false;
             this.boton_uno.Click += new System.EventHandler(this.boton_uno_Click);
             // 
-            // lblTurno
+            // panel_Central_GroupBox4
             // 
-            this.lblTurno.AutoSize = true;
-            this.lblTurno.BackColor = System.Drawing.Color.Transparent;
-            this.lblTurno.Font = new System.Drawing.Font("Segoe UI Symbol", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTurno.Location = new System.Drawing.Point(175, 24);
-            this.lblTurno.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.lblTurno.Name = "lblTurno";
-            this.lblTurno.Size = new System.Drawing.Size(79, 28);
-            this.lblTurno.TabIndex = 4;
-            this.lblTurno.Text = "Turno: ";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Nirmala UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(243, 155);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(129, 25);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Pila de cartas";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Nirmala UI", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(98, 73);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(61, 25);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Mazo";
-            // 
-            // pila_cartas
-            // 
-            this.pila_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
-            this.pila_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.pila_cartas.Location = new System.Drawing.Point(258, 178);
-            this.pila_cartas.Name = "pila_cartas";
-            this.pila_cartas.Size = new System.Drawing.Size(70, 100);
-            this.pila_cartas.TabIndex = 1;
-            this.pila_cartas.TabStop = false;
+            this.panel_Central_GroupBox4.Controls.Add(this.mazo_cartas);
+            this.panel_Central_GroupBox4.Controls.Add(this.pila_cartas);
+            this.panel_Central_GroupBox4.Controls.Add(this.icono_color_juego);
+            this.panel_Central_GroupBox4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel_Central_GroupBox4.Location = new System.Drawing.Point(3, 16);
+            this.panel_Central_GroupBox4.Name = "panel_Central_GroupBox4";
+            this.panel_Central_GroupBox4.Size = new System.Drawing.Size(578, 602);
+            this.panel_Central_GroupBox4.TabIndex = 8;
             // 
             // mazo_cartas
             // 
+            this.mazo_cartas.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.mazo_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
             this.mazo_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.mazo_cartas.Location = new System.Drawing.Point(87, 96);
+            this.mazo_cartas.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.mazo_cartas.Location = new System.Drawing.Point(436, 243);
             this.mazo_cartas.Name = "mazo_cartas";
             this.mazo_cartas.Size = new System.Drawing.Size(70, 100);
             this.mazo_cartas.TabIndex = 0;
             this.mazo_cartas.TabStop = false;
             // 
-            // button1
+            // pila_cartas
             // 
-            this.button1.BackColor = System.Drawing.Color.Yellow;
-            this.button1.Font = new System.Drawing.Font("Nirmala UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.button1.Location = new System.Drawing.Point(36, 543);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(208, 45);
-            this.button1.TabIndex = 5;
-            this.button1.Text = "¡ Reiniciar Juego !";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.pila_cartas.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.pila_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
+            this.pila_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pila_cartas.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pila_cartas.Location = new System.Drawing.Point(267, 243);
+            this.pila_cartas.Name = "pila_cartas";
+            this.pila_cartas.Size = new System.Drawing.Size(70, 100);
+            this.pila_cartas.TabIndex = 1;
+            this.pila_cartas.TabStop = false;
+            // 
+            // icono_color_juego
+            // 
+            this.icono_color_juego.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.icono_color_juego.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.icono_color_juego.Cursor = System.Windows.Forms.Cursors.Default;
+            this.icono_color_juego.Location = new System.Drawing.Point(219, 173);
+            this.icono_color_juego.Name = "icono_color_juego";
+            this.icono_color_juego.Size = new System.Drawing.Size(170, 239);
+            this.icono_color_juego.TabIndex = 2;
+            this.icono_color_juego.TabStop = false;
             // 
             // Form1
             // 
@@ -282,11 +324,10 @@
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Cursor = System.Windows.Forms.Cursors.Default;
-            this.MinimumSize = new System.Drawing.Size(900, 799);
+            this.MinimumSize = new System.Drawing.Size(900, 798);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "UNO";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.panel1.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
@@ -296,8 +337,13 @@
             this.panel4.ResumeLayout(false);
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).EndInit();
+            this.panel_Superior_GroupBox4.ResumeLayout(false);
+            this.panel_Superior_GroupBox4.PerformLayout();
+            this.panel_Inferior_GroupBox4.ResumeLayout(false);
+            this.panel_Central_GroupBox4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.mazo_cartas)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.icono_color_juego)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -315,13 +361,17 @@
         private System.Windows.Forms.FlowLayoutPanel cartas_jugador3;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.GroupBox groupBox4;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.PictureBox pila_cartas;
         private System.Windows.Forms.PictureBox mazo_cartas;
         private System.Windows.Forms.Label lblTurno;
         private System.Windows.Forms.Button boton_uno;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button boton_reinicio;
+        private System.Windows.Forms.Label lblAvisoTemp;
+        private System.Windows.Forms.Panel panel_Superior_GroupBox4;
+        private System.Windows.Forms.Panel panel_Inferior_GroupBox4;
+        private System.Windows.Forms.Panel panel_Central_GroupBox4;
+        private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.PictureBox icono_color_juego;
     }
 }
 

@@ -83,10 +83,5 @@ namespace UNO
             // Oculta el menú principal
             this.Hide();
         }
-
-        private void Form2_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }
