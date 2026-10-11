@@ -41,7 +41,6 @@
             this.panel4 = new System.Windows.Forms.Panel();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.lblAvisoTemp = new System.Windows.Forms.Label();
-            this.pila_cartas = new System.Windows.Forms.PictureBox();
             this.panel_Superior_GroupBox4 = new System.Windows.Forms.Panel();
             this.boton_reinicio = new System.Windows.Forms.Button();
             this.lblTurno = new System.Windows.Forms.Label();
@@ -49,6 +48,8 @@
             this.boton_uno = new System.Windows.Forms.Button();
             this.panel_Central_GroupBox4 = new System.Windows.Forms.Panel();
             this.mazo_cartas = new System.Windows.Forms.PictureBox();
+            this.pila_cartas = new System.Windows.Forms.PictureBox();
+            this.icono_color_juego = new System.Windows.Forms.PictureBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.panel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -58,11 +59,12 @@
             this.groupBox3.SuspendLayout();
             this.panel4.SuspendLayout();
             this.groupBox4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).BeginInit();
             this.panel_Superior_GroupBox4.SuspendLayout();
             this.panel_Inferior_GroupBox4.SuspendLayout();
             this.panel_Central_GroupBox4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mazo_cartas)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.icono_color_juego)).BeginInit();
             this.SuspendLayout();
             // 
             // panel1
@@ -202,18 +204,6 @@
             this.lblAvisoTemp.Size = new System.Drawing.Size(0, 21);
             this.lblAvisoTemp.TabIndex = 4;
             // 
-            // pila_cartas
-            // 
-            this.pila_cartas.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.pila_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
-            this.pila_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.pila_cartas.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pila_cartas.Location = new System.Drawing.Point(256, 243);
-            this.pila_cartas.Name = "pila_cartas";
-            this.pila_cartas.Size = new System.Drawing.Size(70, 100);
-            this.pila_cartas.TabIndex = 1;
-            this.pila_cartas.TabStop = false;
-            // 
             // panel_Superior_GroupBox4
             // 
             this.panel_Superior_GroupBox4.Anchor = System.Windows.Forms.AnchorStyles.Top;
@@ -279,6 +269,7 @@
             // 
             this.panel_Central_GroupBox4.Controls.Add(this.mazo_cartas);
             this.panel_Central_GroupBox4.Controls.Add(this.pila_cartas);
+            this.panel_Central_GroupBox4.Controls.Add(this.icono_color_juego);
             this.panel_Central_GroupBox4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel_Central_GroupBox4.Location = new System.Drawing.Point(3, 16);
             this.panel_Central_GroupBox4.Name = "panel_Central_GroupBox4";
@@ -291,11 +282,35 @@
             this.mazo_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
             this.mazo_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.mazo_cartas.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.mazo_cartas.Location = new System.Drawing.Point(409, 243);
+            this.mazo_cartas.Location = new System.Drawing.Point(436, 243);
             this.mazo_cartas.Name = "mazo_cartas";
             this.mazo_cartas.Size = new System.Drawing.Size(70, 100);
             this.mazo_cartas.TabIndex = 0;
             this.mazo_cartas.TabStop = false;
+            // 
+            // pila_cartas
+            // 
+            this.pila_cartas.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.pila_cartas.BackgroundImage = global::UNO.Properties.Resources.back_uno;
+            this.pila_cartas.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pila_cartas.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pila_cartas.Location = new System.Drawing.Point(267, 243);
+            this.pila_cartas.Name = "pila_cartas";
+            this.pila_cartas.Size = new System.Drawing.Size(70, 100);
+            this.pila_cartas.TabIndex = 1;
+            this.pila_cartas.TabStop = false;
+            // 
+            // icono_color_juego
+            // 
+            this.icono_color_juego.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.icono_color_juego.BackgroundImage = global::UNO.Properties.Resources.yellow;
+            this.icono_color_juego.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.icono_color_juego.Cursor = System.Windows.Forms.Cursors.Default;
+            this.icono_color_juego.Location = new System.Drawing.Point(219, 173);
+            this.icono_color_juego.Name = "icono_color_juego";
+            this.icono_color_juego.Size = new System.Drawing.Size(170, 239);
+            this.icono_color_juego.TabIndex = 2;
+            this.icono_color_juego.TabStop = false;
             // 
             // Form1
             // 
@@ -323,12 +338,13 @@
             this.panel4.ResumeLayout(false);
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).EndInit();
             this.panel_Superior_GroupBox4.ResumeLayout(false);
             this.panel_Superior_GroupBox4.PerformLayout();
             this.panel_Inferior_GroupBox4.ResumeLayout(false);
             this.panel_Central_GroupBox4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.mazo_cartas)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pila_cartas)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.icono_color_juego)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -356,6 +372,7 @@
         private System.Windows.Forms.Panel panel_Inferior_GroupBox4;
         private System.Windows.Forms.Panel panel_Central_GroupBox4;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.PictureBox icono_color_juego;
     }
 }
 
