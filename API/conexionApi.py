@@ -5,11 +5,11 @@ app = FastAPI()
 
 def obtener_conexion():
     return mysql.connector.connect(
-        host="localhost",
+        host="127.0.0.1",
         port=3306,
         database="juego_uno",
         user="root",      
-        password="VaRCHAR3006@" 
+        password="M1234" 
     )
 
 @app.get("/jugadores")

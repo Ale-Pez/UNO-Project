@@ -26,6 +26,10 @@ namespace UNO
 
         private async Task CargarResumenDesdeApiAsync()
         {
+           
+            // DISPARADOR DE LA PETICIÓN:
+            //instanciamos el servicio (apiService) y le damos la URL exacta, en este preciso momento es cuando se manda a llamar la apiservice, 
+            // se ejecuta el request web hacia la API, se trae el JSON de la base de datos,y se deserializa (convierte a objetos C#), se ordena y se muestra en ventana de resumen.
             apiService servicioApi = new apiService();
             string urlEndpoint = "http://127.0.0.1:8000/jugadores";
 
