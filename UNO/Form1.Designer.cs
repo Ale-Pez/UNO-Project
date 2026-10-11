@@ -303,7 +303,6 @@
             // icono_color_juego
             // 
             this.icono_color_juego.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.icono_color_juego.BackgroundImage = global::UNO.Properties.Resources.yellow;
             this.icono_color_juego.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.icono_color_juego.Cursor = System.Windows.Forms.Cursors.Default;
             this.icono_color_juego.Location = new System.Drawing.Point(219, 173);

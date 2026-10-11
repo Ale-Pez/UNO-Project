@@ -834,6 +834,7 @@ namespace UNO
 
             pila_cartas.Image = pictureBoxCarta.Image;
             cartas_en_pila.Add(cartaJugada);
+            Actualizar_Color_Actual(cartaJugada.getColor());
         }
 
         public void ReiniciarJuego()
