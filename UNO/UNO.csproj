@@ -87,7 +87,6 @@
     <Compile Include="apiService.cs" />
     <Compile Include="Baraja.cs" />
     <Compile Include="Carta.cs" />
-    <Compile Include="ConexionDB.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

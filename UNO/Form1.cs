@@ -1,14 +1,17 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using UNO;
+using static UNO.Regitsro;
 
 namespace UNO
 {
@@ -36,17 +39,12 @@ namespace UNO
 
             InitializeComponent();
 
-            idPartidaActual = ConexionBD.CrearNuevaPartida();
+            idPartidaActual = CrearPartidaApi();
 
             bool nuevo1, nuevo2, nuevo3;
-            idJugador1 = ConexionBD.RegistrarOObtenerJugadorConEstado(n1, out nuevo1);
-            idJugador2 = ConexionBD.RegistrarOObtenerJugadorConEstado(n2, out nuevo2);
-            idJugador3 = ConexionBD.RegistrarOObtenerJugadorConEstado(n3, out nuevo3);
-
-
-            ConexionBD.InicializarHistorial(idJugador1);
-            ConexionBD.InicializarHistorial(idJugador2);
-            ConexionBD.InicializarHistorial(idJugador3);
+            idJugador1 = RegistrarJugadorApi(n1, out nuevo1);
+            idJugador2 = RegistrarJugadorApi(n2, out nuevo2);
+            idJugador3 = RegistrarJugadorApi(n3, out nuevo3);
 
 
             baraja = new Baraja();
@@ -76,6 +74,98 @@ namespace UNO
 
             boton_uno.Visible = true;
         }
+
+
+         
+        //METODOS QUE UTILIZA LA API PARA GUARDAR LOS DATOS EN LA BD:
+        private static readonly HttpClient apiHttpClient = new HttpClient();
+
+        private int CrearPartidaApi()
+        {
+            try
+            {
+                string url = "http://127.0.0.1:8000/partidas/crear";
+                var response = Task.Run(() => apiHttpClient.PostAsync(url, null)).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = Task.Run(() => response.Content.ReadAsStringAsync()).Result;
+                    var res = JsonConvert.DeserializeObject<RespartidaDto>(json);
+                    return res.id_partida;
+                }
+            }
+            catch { }
+            return 1;
+        }
+
+        private int RegistrarJugadorApi(string nombre, out bool esNuevo)
+        {
+            esNuevo = false;
+            try
+            {
+                string url = "http://127.0.0.1:8000/jugadores/registrar";
+                var datos = new { nombre = nombre };
+                string payload = JsonConvert.SerializeObject(datos);
+                var content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+                var response = Task.Run(() => apiHttpClient.PostAsync(url, content)).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = Task.Run(() => response.Content.ReadAsStringAsync()).Result;
+                    var res = JsonConvert.DeserializeObject<RespuestaRegistroDto>(json);
+                    esNuevo = res.es_nuevo;
+                    return res.id_jugador;
+                }
+            }
+            catch { }
+            return -1;
+        }
+
+        private void GuardarLogApi(int idPartida, int idJugador, string movimiento)
+        {
+            try
+            {
+                string url = "http://127.0.0.1:8000/logs";
+                var datos = new { id_partida = idPartida, id_jugador = idJugador, movimiento = movimiento };
+                string payload = JsonConvert.SerializeObject(datos);
+                var content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+                Task.Run(() => apiHttpClient.PostAsync(url, content));
+            }
+            catch { }
+        }
+
+        private void FinalizarPartidaApi(int idPartida, string ganador)
+        {
+            try
+            {
+                string url = "http://127.0.0.1:8000/partidas/finalizar"; // O la ruta que hayas configurado en tu API
+                var datos = new { id_partida = idPartida, ganador = ganador };
+                string payload = JsonConvert.SerializeObject(datos);
+                var content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+                Task.Run(() => apiHttpClient.PostAsync(url, content));
+            }catch { }
+        }
+
+        private void ActualizarHistorialApi(int idJugador, bool gano)
+        {
+            try
+            {
+                string url = "http://127.0.0.1:8000/historial/actualizar";
+                var datos = new { id_jugador = idJugador, gano = gano };
+                string payload = JsonConvert.SerializeObject(datos);
+                var content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+                Task.Run(() => apiHttpClient.PostAsync(url, content));
+            }
+            catch { }
+        }
+        public class RespartidaDto  //un molde que le dice a C# como leer la respuesta en formato JSON que nos manda la API cuando se crea una nueva partida 
+        {
+            public int id_partida { get; set; }
+        }
+
+
 
         private void CentrarControles()
         {
@@ -551,7 +641,7 @@ namespace UNO
             else if (turnoActual == 2) idJugadorActual = idJugador2;
             else if (turnoActual == 3) idJugadorActual = idJugador3;
 
-            ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, "Robó una carta del mazo");
+            GuardarLogApi(idPartidaActual, idJugadorActual, "Robó una carta del mazo");
 
             PictureBox imagenCarta = Obtener_Imagen_Carta(robada);
             if (turnoActual == 1) jugador1.RecibirCarta(robada);
@@ -617,9 +707,6 @@ namespace UNO
                 cartas_jugador3.Controls.Add(imagenCarta);
             }
             AvanzarTurno();
-
-
-
         }
 
 
@@ -708,14 +795,17 @@ namespace UNO
 
             if (hayGanador)
             {
-                ConexionBD.FinalizarPartida(idPartidaActual, nombreGanador);
 
-                ConexionBD.RegistrarResultadoPartida(idGanador, true);
+                // Mandamos a llamar al método que le hace el POST a la API para cerrar la partida
+                FinalizarPartidaApi(idPartidaActual, nombreGanador);
+
+                // Actualizamos el historial de victorias/derrotas mediante la API
+                ActualizarHistorialApi(idGanador, true);
 
                 // a los otros dos jugadores se les registra la derrota 
-                if (idGanador != idJugador1) ConexionBD.RegistrarResultadoPartida(idJugador1, false);
-                if (idGanador != idJugador2) ConexionBD.RegistrarResultadoPartida(idJugador2, false);
-                if (idGanador != idJugador3) ConexionBD.RegistrarResultadoPartida(idJugador3, false);
+                if (idGanador != idJugador1) ActualizarHistorialApi(idJugador1, false);
+                if (idGanador != idJugador2) ActualizarHistorialApi(idJugador2, false);
+                if (idGanador != idJugador3) ActualizarHistorialApi(idJugador3, false);
 
                 MessageBox.Show($"¡{nombreGanador} ha ganado la partida!", "¡Victoria!", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -745,29 +835,6 @@ namespace UNO
             MessageBox.Show("¡UNO!", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
-
-
-        //metodo auxiliar que se encargar exclusivamente de jugar la carta robada del mazo de forma limpia y sin activar jamas la penalizacion (el jugador no dice UNO)
-        private void RealizaJugadaDesdeMazo(Carta cartaJugada, PictureBox pictureBoxCarta)
-        {
-            int idJugadorActual = -1;
-            if (turnoActual == 1) idJugadorActual = idJugador1;
-            else if (turnoActual == 2) idJugadorActual = idJugador2;
-            else if (turnoActual == 3) idJugadorActual = idJugador3;
-
-            ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, $"Tiró (desde mazo) la carta {cartaJugada.getTipo()} de color {cartaJugada.getColor()}");
-
-            // NOTA: Como la carta se acaba de robar, NUNCA se añadió formalmente a la mano del jugador (solo se evaluó). 
-            // Por lo tanto, no hay que quitarla del objeto Jugador, solo colocarla directamente en la pila.
-
-            pila_cartas.Image = pictureBoxCarta.Image;
-            cartas_en_pila.Add(cartaJugada);
-
-            // Verificamos si con esto gana (por si acaso se quedó sin cartas antes, aunque robó) y aplicamos efectos
-            VerificarGanador();
-            AplicarEfectoCarta(cartaJugada);
-        }
-
 
 
         // Método auxiliar para dar cartas a un jugador en específico (por castigos de UNO, etc.)
@@ -813,7 +880,7 @@ namespace UNO
             else if (turnoActual == 2) idJugadorActual = idJugador2;
             else if (turnoActual == 3) idJugadorActual = idJugador3;
 
-            ConexionBD.GuardarLog(idPartidaActual, idJugadorActual, $"Tiró la carta {cartaJugada.getTipo()} de color {cartaJugada.getColor()}");
+            GuardarLogApi(idPartidaActual, idJugadorActual, $"Tiró la carta {cartaJugada.getTipo()} de color {cartaJugada.getColor()}");
 
             // Quitamos la carta de la mano lógica del jugador actual
             if (turnoActual == 1) jugador1.JugarCarta(cartaJugada);
@@ -862,7 +929,7 @@ namespace UNO
             esJugadaDesdeMazo = false;
 
 
-            idPartidaActual = ConexionBD.CrearNuevaPartida();
+            idPartidaActual = CrearPartidaApi();
 
             Repartir_Cartas();
             ActualizaTurnoLabel();
@@ -906,5 +973,14 @@ namespace UNO
 
             this.icono_color_juego.SizeMode = PictureBoxSizeMode.StretchImage;
         }
+
+        private void panel_Central_GroupBox4_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+
+
+       
     }
 }

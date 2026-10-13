@@ -10,7 +10,6 @@ namespace UNO
     public partial class Form3 : Form
     {
         private string ganadorPartida;
-        private string castigadoPartida;
 
         // Constructor que recibe únicamente al ganador y al castigado
         public Form3(string nombreGanador, string nombreCastigado)
@@ -83,6 +82,11 @@ namespace UNO
             this.DialogResult = DialogResult.Cancel; 
             this.Close();
         }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public class JugadorDto
@@ -90,6 +94,5 @@ namespace UNO
         public int id_jugador { get; set; }
         public string nombre { get; set; }
         public int partidas_ganadas { get; set; }
-        public int cartas_comidas { get; set; }
     }
 }
