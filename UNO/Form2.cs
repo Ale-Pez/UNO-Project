@@ -77,7 +77,7 @@ namespace UNO
             }
 
             // Se abre el tablero de juego (Form1) pasándole los 3 nombres limpios
-            Form1 tableroJuego = new Form1(nombreJugador1, nombreJugador2, nombreJugador3);
+            MesaUNO tableroJuego = new MesaUNO(nombreJugador1, nombreJugador2, nombreJugador3);
             tableroJuego.Show();
 
             // Oculta el menú principal
