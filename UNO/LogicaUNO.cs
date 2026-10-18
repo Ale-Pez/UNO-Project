@@ -14,30 +14,14 @@ namespace UNO
         public int turno_actual = 1; // Se define por los números de jugadores.
         public int sentido_juego = 1; // Direccion normal: 1; Reversa: -1.
         public ColorCarta color_actual;
-        private bool uno_cantado = false;
+        private HashSet<int> jugadores_con_uno = new HashSet<int>();
         private bool jugada_desde_mazo = false;
 
         private LlamadaBD llamada;
 
         public LogicaUNO(string nickname1, string nickname2, string nickname3)
         {
-            // Registrar partida de UNO
-            this.llamada = new LlamadaBD(nickname1, nickname2, nickname3);
-
-            // Crea las cartas necesarias para una baraja de UNO y las reorganiza aleatoriamente.
-            this.baraja = new Baraja();
-            this.baraja.Barajar();
-
-            // Pila donde se colocaran las cartas jugadas.
-            this.cartas_en_pila = new List<Carta>();
-
-            // Inicializar jugadores con los nombres registrados.
-            this.jugador1 = new Jugador(nickname1);
-            this.jugador2 = new Jugador(nickname2);
-            this.jugador3 = new Jugador(nickname3);
-
-            // Repartición de 7 cartas a cada jugador.
-            RepartirCartas();
+            ReiniciarRonda(nickname1, nickname2, nickname3);
         }
 
         public void AplicarEfectoCarta(Carta carta_jugada)
@@ -62,18 +46,16 @@ namespace UNO
                     break;
 
                 case TipoCarta.MASDOS:
-                    DarCartasASiguienteJugador(2); // Al jugador que sigue se le obliga a comer 2 cartas y pierde su turno.
-                    AvanzarTurno();
-                    AvanzarTurno();
+                    DarCartasASiguienteJugador(2); // Avanza al jugador castigado y le entrega las cartas.
+                    AvanzarTurno(); // El jugador castigado pierde el turno.
                     break;
 
                 case TipoCarta.MASCUATRO:
                     ColorCarta color_por_mascuatro = SolicitarEleccionColor(); // Se le solicita escoger un color al jugador actual.
                     carta_jugada.setColor(color_por_mascuatro);
-                    DarCartasASiguienteJugador(4); // Al jugador que sigue se le obliga a comer 4 cartas y pierde su turno.
                     this.color_actual = color_por_mascuatro;
-                    AvanzarTurno();
-                    AvanzarTurno();
+                    DarCartasASiguienteJugador(4); // Avanza al jugador castigado y le entrega las cartas.
+                    AvanzarTurno(); // El jugador castigado pierde el turno.
                     break;
 
                 default:
@@ -91,22 +73,51 @@ namespace UNO
             if (turno_actual < 1) turno_actual = 3;
         }
 
+        private void ContinuarJugadaNormal(Carta carta_jugada)
+        {
+            int jugador_actual = -1;
+            if (this.turno_actual == 1) jugador_actual = 1;
+            else if (this.turno_actual == 2) jugador_actual = 2;
+            else jugador_actual = 3;
+
+            llamada.GuardarLogApi(jugador_actual, $"Tiró la carta {carta_jugada.getTipo()} de color {carta_jugada.getColor()}");
+
+            // Elimina la carta de la mano lógica del jugador actual
+            if (this.turno_actual == 1) jugador1.JugarCarta(carta_jugada);
+            else if (this.turno_actual == 2) jugador2.JugarCarta(carta_jugada);
+            else jugador3.JugarCarta(carta_jugada);
+
+            cartas_en_pila.Add(carta_jugada);
+            this.color_actual = carta_jugada.getColor();
+        }
+
         // Para casos en los que algún jugador tiene que comer varias cartas del mazo principal (ej. +2 o +4).
         private void DarCartasASiguienteJugador(int cantidad)
         {
-            Jugador jugadorDestino = null;
+            Jugador jugador_castigado = null;
             AvanzarTurno();
 
-            if (this.turno_actual == 1) jugadorDestino = jugador1;
-            else if (this.turno_actual == 2) jugadorDestino = jugador2;
-            else if (this.turno_actual == 3) jugadorDestino = jugador3;
+            if (this.turno_actual == 1) jugador_castigado = jugador1;
+            else if (this.turno_actual == 2) jugador_castigado = jugador2;
+            else if (this.turno_actual == 3) jugador_castigado = jugador3;
 
             for (int i = 0; i < cantidad; i++)
             {
                 Carta robada = baraja.RobarCarta();
-                jugadorDestino.RecibirCarta(robada);
+                jugador_castigado.RecibirCarta(robada);
             }
-            AvanzarTurno();
+        }
+
+        // Método auxiliar para dar cartas a un jugador en específico (por castigos de UNO, etc.)
+        private void DarCartasAJugadorEspecifico(Jugador jugador_castigado, int cantidad)
+        {
+            for (int i = 0; i < cantidad; i++)
+            {
+                Carta robada = baraja.RobarCarta();
+                if (robada == null) break; // Si la baraja se queda sin cartas
+
+                jugador_castigado.RecibirCarta(robada);
+            }
         }
 
         private void RepartirCartas()
@@ -182,82 +193,7 @@ namespace UNO
             ventanaColor.ShowDialog(); // muestra la ventana y espera a que el usuario elija
             return colorElegido;
         }
-
-        public bool JugadaValida(Carta carta_jugada, Carta carta_apilada)
-        {
-            // Sin importar la carta en pila, los comodines y mas cuatro se pueden tirar siempre.
-            if (carta_jugada.getTipo() == TipoCarta.COMODIN || carta_jugada.getTipo() == TipoCarta.MASCUATRO)
-                return true;
-
-            // La carta jugada coincide en el color con la que se encuentra en la pila.
-            if (carta_jugada.getColor() == carta_apilada.getColor())
-                return true;
-
-            // Si son ambas cartas son de tipo NUMERO y coinciden en número.
-            if (carta_jugada.getTipo() == TipoCarta.NUMERO && carta_apilada.getTipo() == TipoCarta.NUMERO
-                && carta_jugada.getNumero() == carta_apilada.getNumero())
-                return true;
-
-            // Si coinciden en ser del tipo ESPECIAL, no importa su color, es válido.
-            if (carta_jugada.getTipo() == carta_apilada.getTipo() && carta_jugada.getTipo() != TipoCarta.NUMERO)
-                return true;
-
-            return false; // Si no cumple ninguna condición, la jugada es inválida.
-        }
-
-        public void RealizarJugada(Carta carta_jugada, bool llamada)
-        {
-            Jugador jugador_actual = (this.turno_actual == 1) ? jugador1 : (this.turno_actual == 2) ? jugador2 : jugador3;
-
-            if (!jugada_desde_mazo)
-            {
-                int cartas_en_mano_antes = 0;
-                if (this.turno_actual == 1) cartas_en_mano_antes = this.jugador1.ContarCartas();
-                else if (this.turno_actual == 2) cartas_en_mano_antes = this.jugador2.ContarCartas();
-                else cartas_en_mano_antes = this.jugador3.ContarCartas();
-
-                // Si el jugador tenía EXACTAMENTE 1 carta ANTES de tirar, significa que esta es su última carta.
-                if (cartas_en_mano_antes == 1)
-                {
-                    if (uno_cantado)
-                    {
-                        uno_cantado = false; // Reinicia la bandera
-
-                        // ¡Cantó UNO a tiempo! Gana la partida limpiamente
-                        ContinuarJugadaNormal(carta_jugada, llamada);
-                        VerificarGanador();
-                        return;
-                    }
-                    else
-                    {
-                        // NO cantó UNO: Recibe castigo de 2 cartas y pierde el turno
-                        MessageBox.Show($"¡{jugador_actual.GetNombre()} tiró su última carta pero olvidó decir UNO! Recibe una penalización de 2 cartas y pierde su turno.", "Castigo UNO", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-                        ContinuarJugadaNormal(carta_jugada, llamada);
-                        DarCartasAJugadorEspecifico(jugador_actual, 2);
-                        AvanzarTurno();
-                        return;
-                    }
-                }
-            }
-            else
-            {
-                jugada_desde_mazo = false;
-            }
-
-            // Flujo normal para cuando tira una carta y aun le quedan 2 o más cartas en su mano.
-            ContinuarJugadaNormal(carta_jugada, llamada);
-
-            // Si al tirar esta carta (que era la penultima) el jugador se queda con EXACTAMENTE 1 carta, habilitamos el botón de UNO para que pueda presionarlo en este mismo turno.
-            int cartas_restantes = 0;
-            if (this.turno_actual == 1) cartas_restantes = this.jugador1.ContarCartas();
-            else if (this.turno_actual == 2) cartas_restantes = this.jugador2.ContarCartas();
-            else cartas_restantes = this.jugador3.ContarCartas();
-
-            VerificarGanador();
-            AplicarEfectoCarta(carta_jugada);
-        }
-
+        
         private void VerificarGanador()
         {
             string nombre_ganador = "";
@@ -299,6 +235,130 @@ namespace UNO
 
                 MessageBox.Show($"¡{nombre_ganador} ha ganado la partida!", "¡Victoria!", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+        }
+
+        // Registra qué jugador anunció UNO. Se conserva su identidad aunque el turno avance.
+        public void GritarUNO()
+        {
+            GritarUNO(this.turno_actual);
+        }
+
+        public void GritarUNO(int numeroJugador)
+        {
+            if (numeroJugador >= 1 && numeroJugador <= 3)
+                this.jugadores_con_uno.Add(numeroJugador);
+        }
+
+        public void CancelarUNO(int numeroJugador)
+        {
+            this.jugadores_con_uno.Remove(numeroJugador);
+        }
+
+        // Se usa cuando el jugador roba y no realiza una jugada.
+        public void PasarTurno()
+        {
+            AvanzarTurno();
+        }
+
+        public void RegistrarRoboCarta()
+        {
+            llamada.GuardarLogApi(this.turno_actual, "Robó una carta del mazo");
+        }
+
+        public bool JugadaValida(Carta carta_jugada, Carta carta_apilada)
+        {
+            // Sin importar la carta en pila, los comodines y mas cuatro se pueden tirar siempre.
+            if (carta_jugada.getTipo() == TipoCarta.COMODIN || carta_jugada.getTipo() == TipoCarta.MASCUATRO)
+                return true;
+
+            // La carta jugada coincide en el color con la que se encuentra en la pila.
+            if (carta_jugada.getColor() == carta_apilada.getColor())
+                return true;
+
+            // Si son ambas cartas son de tipo NUMERO y coinciden en número.
+            if (carta_jugada.getTipo() == TipoCarta.NUMERO && carta_apilada.getTipo() == TipoCarta.NUMERO
+                && carta_jugada.getNumero() == carta_apilada.getNumero())
+                return true;
+
+            // Si coinciden en ser del tipo ESPECIAL, no importa su color, es válido.
+            if (carta_jugada.getTipo() == carta_apilada.getTipo() && carta_jugada.getTipo() != TipoCarta.NUMERO)
+                return true;
+
+            return false; // Si no cumple ninguna condición, la jugada es inválida.
+        }
+
+        public void RealizarJugada(Carta carta_jugada)
+        {
+            Jugador jugador_actual = (this.turno_actual == 1) ? jugador1 : (this.turno_actual == 2) ? jugador2 : jugador3;
+
+            if (!jugada_desde_mazo)
+            {
+                int cartas_en_mano_antes = 0;
+                if (this.turno_actual == 1) cartas_en_mano_antes = this.jugador1.ContarCartas();
+                else if (this.turno_actual == 2) cartas_en_mano_antes = this.jugador2.ContarCartas();
+                else cartas_en_mano_antes = this.jugador3.ContarCartas();
+
+                // Si el jugador tenía EXACTAMENTE 1 carta ANTES de tirar, significa que esta es su última carta.
+                if (cartas_en_mano_antes == 1)
+                {
+                    if (jugadores_con_uno.Contains(this.turno_actual))
+                    {
+                        jugadores_con_uno.Remove(this.turno_actual); // Reinicia el registro de UNO
+
+                        // ¡Cantó UNO a tiempo! Gana la partida limpiamente
+                        ContinuarJugadaNormal(carta_jugada);
+                        VerificarGanador();
+                        return;
+                    }
+                    else
+                    {
+                        // NO cantó UNO: Recibe castigo de 2 cartas y pierde el turno.
+                        MessageBox.Show($"¡{jugador_actual.GetNombre()} tiró su última carta pero olvidó decir UNO! Recibe una penalización de 2 cartas y pierde su turno.", "Castigo UNO", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                        ContinuarJugadaNormal(carta_jugada);
+                        DarCartasAJugadorEspecifico(jugador_actual, 2);
+                        AvanzarTurno();
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                jugada_desde_mazo = false;
+            }
+
+            // Flujo normal para cuando tira una carta y aun le quedan 2 o más cartas en su mano.
+            ContinuarJugadaNormal(carta_jugada);
+
+            VerificarGanador();
+            AplicarEfectoCarta(carta_jugada);
+        }
+
+        public void ReiniciarRonda(string nickname1, string nickname2, string nickname3)
+        {
+            // Registrar partida de UNO
+            this.llamada = new LlamadaBD(nickname1, nickname2, nickname3);
+
+            // Crea las cartas necesarias para una baraja de UNO y las reorganiza aleatoriamente.
+            this.baraja = new Baraja();
+            this.baraja.Barajar();
+
+            // Pila donde se colocaran las cartas jugadas.
+            this.cartas_en_pila = new List<Carta>();
+
+            // Inicializar jugadores con los nombres registrados.
+            this.jugador1 = new Jugador(nickname1);
+            this.jugador2 = new Jugador(nickname2);
+            this.jugador3 = new Jugador(nickname3);
+
+            // Configuraciones básicas de juego.
+            this.turno_actual = 1;
+            this.sentido_juego = 1;
+            this.jugadores_con_uno.Clear();
+            this.jugada_desde_mazo = false;
+
+            // Repartición de 7 cartas a cada jugador.
+            RepartirCartas();
         }
     }
 }

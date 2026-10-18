@@ -28,7 +28,7 @@ namespace UNO
             string nombreJugador3 = "";
 
             // --- JUGADOR 1 ---
-            Regitsro reg1 = new Regitsro();
+            Registro reg1 = new Registro();
             reg1.Text = "Registro - Jugador 1";
             if (reg1.ShowDialog() == DialogResult.OK)
             {
@@ -40,7 +40,7 @@ namespace UNO
             }
 
             // --- JUGADOR 2 ---
-            Regitsro reg2 = new Regitsro();
+            Registro reg2 = new Registro();
             reg2.Text = "Registro - Jugador 2";
             if (reg2.ShowDialog() == DialogResult.OK)
             {
@@ -59,7 +59,7 @@ namespace UNO
             }
 
             // --- JUGADOR 3 ---
-            Regitsro reg3 = new Regitsro();
+            Registro reg3 = new Registro();
             reg3.Text = "Registro - Jugador 3";
             if (reg3.ShowDialog() == DialogResult.OK)
             {

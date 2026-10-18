@@ -87,6 +87,7 @@
     <Compile Include="apiService.cs" />
     <Compile Include="Baraja.cs" />
     <Compile Include="Carta.cs" />
+    <Compile Include="LlamadaBD.cs" />
     <Compile Include="LogicaUNO.cs" />
     <Compile Include="MesaUNO.cs">
       <SubType>Form</SubType>
