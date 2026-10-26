@@ -13,7 +13,7 @@ using System.Windows.Forms;
 
 namespace UNO
 {
-    public partial class Regitsro : Form
+    public partial class Registro : Form
     {
         // Propiedad que lee Form2 para extraer el nombre ingresado
         public string UsuarioRegistrado { get; private set; }
@@ -21,7 +21,7 @@ namespace UNO
         // Cliente HTTP estatio para comunicarse  con la API
         private static readonly HttpClient client = new HttpClient();
 
-        public Regitsro()
+        public Registro()
         {
             InitializeComponent();
 
@@ -100,21 +100,6 @@ namespace UNO
         {
             public int id_jugador { get; set; }
             public bool es_nuevo { get; set; }
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void Regsitro_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label5_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
