@@ -10,7 +10,7 @@ def obtener_conexion():
         port=3306,
         database="juego_uno",
         user="root",      
-        password="M1234" 
+        password="VaRCHAR3006@" 
     )
 
 # --- MODELOS DE DATOS (Lo que C# le mandara a la API) ---

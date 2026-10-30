@@ -101,5 +101,10 @@ namespace UNO
             public int id_jugador { get; set; }
             public bool es_nuevo { get; set; }
         }
+
+        private void Registro_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

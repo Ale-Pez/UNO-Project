@@ -11,6 +11,8 @@ namespace UNO
         private LogicaUNO director;
         private Timer timerAviso;
 
+        private CllienteJuego cliente;
+
         // Conserva al jugador que acaba de quedarse con una carta.
         // La oportunidad de cantar UNO termina cuando comienza la siguiente acción válida.
         private int jugador_pendiente_uno = -1;
@@ -35,6 +37,10 @@ namespace UNO
             
             IniciarControles();
             ActualizarInterfaz();
+
+            //conexion al servidor
+            cliente = new CllienteJuego();
+            cliente.ConectarAlServidor("127.0.0.1", 11111, n1);
         }
 
         private void IniciarControles()
@@ -244,16 +250,33 @@ namespace UNO
             }
 
             int jugador_que_jugo = this.director.turno_actual;
+            //Enviar la carta jugada al servidor
+            cliente.EnviarAccion(
+                $"JUGAR_CARTA|{carta_usada.getColor()}|{carta_usada.getTipo()}|{carta_usada.getNumero()}"
+                );
             CerrarVentanaUNO();
             this.director.RealizarJugada(carta_usada);
             TerminarAccion(jugador_que_jugo);
         }
 
+        //Ahora cada computadora solamente podrá seleccionar las cartas de su jugador, siempre que sea su turno
         private bool EstabaEnMazo(PictureBox pb)
         {
-            if (this.director.turno_actual == 1 && this.cartas_jugador1.Controls.Contains(pb)) return true;
-            if (this.director.turno_actual == 2 && this.cartas_jugador2.Controls.Contains(pb)) return true;
-            if (this.director.turno_actual == 3 && this.cartas_jugador3.Controls.Contains(pb)) return true;
+            // Verificar que sea el turno de este cliente
+            if (this.director.turno_actual != cliente.NumeroJugador)
+                return false;
+
+            if (cliente.NumeroJugador == 1 &&
+                this.cartas_jugador1.Controls.Contains(pb))
+                return true;
+
+            if (cliente.NumeroJugador == 2 &&
+                this.cartas_jugador2.Controls.Contains(pb))
+                return true;
+
+            if (cliente.NumeroJugador == 3 &&
+                this.cartas_jugador3.Controls.Contains(pb))
+                return true;
 
             return false;
         }
@@ -306,7 +329,13 @@ namespace UNO
         {
             if (this.jugador_pendiente_uno == -1 || this.partida_terminada) return;
 
+            //únicamente el jugador que tiene pendiente anunciar UNO podrá hacerlo.
+            if (this.jugador_pendiente_uno != cliente.NumeroJugador)
+                return;
+
             this.director.GritarUNO(this.jugador_pendiente_uno);
+
+            cliente.EnviarAccion("UNO");
             string nombre = ObtenerJugador(this.jugador_pendiente_uno).GetNombre();
 
             this.jugador_pendiente_uno = -1;
@@ -326,7 +355,16 @@ namespace UNO
             if (this.partida_terminada)
                 return;
 
+            //verifica que sea el turno de este jugador
+
+            if (this.director.turno_actual != cliente.NumeroJugador)
+            {
+                MessageBox.Show("¡No es tu turno!");
+                return;
+            }
+
             int jugador_actual = this.director.turno_actual;
+            cliente.EnviarAccion("ROBAR_CARTA");
             CerrarVentanaUNO();
 
             Carta robada = RobarCartaDisponible();
@@ -568,6 +606,11 @@ namespace UNO
                 ReiniciarJuego(false);
             else
                 Close();
+        }
+
+        private void panel_Superior_GroupBox4_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }
