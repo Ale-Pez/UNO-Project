@@ -12,11 +12,14 @@ namespace UNO
         private Timer timerAviso;
 
         private ClienteJuego cliente;
+        private bool partida_iniciada = false;
 
         // Conserva al jugador que acaba de quedarse con una carta.
         // La oportunidad de cantar UNO termina cuando comienza la siguiente acción válida.
         private int jugador_pendiente_uno = -1;
         private bool partida_terminada = false;
+        private bool accion_pendiente = false; // Evita enviar acciones repetidas
+        private bool esperando_reinicio = false;
 
 
         public MesaUNO(string n1, string n2, string n3)
@@ -34,12 +37,13 @@ namespace UNO
             // Creación del Timer (para mensajes emergentes).
             this.timerAviso = new Timer();
             this.timerAviso.Interval = 2500;
-            
-            IniciarControles();
-            ActualizarInterfaz();
 
             //conexion al servidor
             cliente = new ClienteJuego();
+
+            IniciarControles();
+            ActualizarInterfaz();
+
 
 
             cliente.MensajeRecibido += (mensaje) =>
@@ -53,6 +57,7 @@ namespace UNO
                     }));
                 }
             };
+            var identificador = this.Handle;
 
             cliente.ConectarAlServidor("10.103.150.202", 11111, n1);
         }
@@ -71,7 +76,7 @@ namespace UNO
             this.lblAvisoTemp.Top = this.lblAvisoTemp.Height + 100;
 
             // EVENTOS
-            this.mazo_cartas.Click += new EventHandler(RobarMazoCarta);
+            // El evento se registra una sola vez abajo.
 
             this.mazo_cartas.Click -= RobarMazoCarta;
             this.mazo_cartas.Click += RobarMazoCarta;
@@ -94,7 +99,7 @@ namespace UNO
             // CENTRADO DE ETIQUETA TURNO
             this.lblTurno.Left = (this.panel_Superior_GroupBox4.ClientSize.Width - this.lblTurno.Width) / 2;
             this.lblTurno.Top = this.boton_reinicio.Bottom + 2;
-            
+
             // CENTRADO DE BOTÓN UNO
             this.boton_uno.Left = (this.panel_Inferior_GroupBox4.ClientSize.Width - this.boton_uno.Width) / 2;
             this.boton_uno.Top = (this.panel_Inferior_GroupBox4.ClientSize.Height - this.boton_uno.Height) / 2;
@@ -115,8 +120,7 @@ namespace UNO
 
                 Image anterior = this.pila_cartas.Image;
                 this.pila_cartas.Image = imagen;
-                if (anterior != null)
-                    anterior.Dispose();
+                if (anterior != null) anterior.Dispose();
 
                 this.pila_cartas.SizeMode = PictureBoxSizeMode.StretchImage;
                 this.pila_cartas.Width = 70;
@@ -125,17 +129,21 @@ namespace UNO
 
             ActualizarIndicadorColor();
             ActualizarTurnoEtiqueta();
-            this.boton_uno.Visible = this.jugador_pendiente_uno != -1 && !this.partida_terminada;
+            this.boton_uno.Visible = this.jugador_pendiente_uno == cliente?.NumeroJugador && !this.partida_terminada;
         }
 
         private void DibujarMano(List<Carta> mano, FlowLayoutPanel panel, int numeroJugador)
         {
             LimpiarPanelCartas(panel);
 
-            foreach (Carta carta in mano)
+            bool esMiMano = cliente != null && numeroJugador == cliente.NumeroJugador;
+            int cantidad = esMiMano ? mano.Count : this.director.ContarCartasServidor(numeroJugador);
+
+            for (int i = 0; i < cantidad; i++)
             {
-                PictureBox sprite = ObtenerSpriteCarta(carta);
-                sprite.Tag = carta;
+                PictureBox sprite = esMiMano ? ObtenerSpriteCarta(mano[i]) : new PictureBox();
+                if (!esMiMano) sprite.Image = (Image)Properties.Resources.back_uno.Clone();
+                sprite.Tag = esMiMano ? (object)mano[i] : null;
                 sprite.SizeMode = PictureBoxSizeMode.StretchImage;
 
                 if (numeroJugador == 1)
@@ -147,34 +155,31 @@ namespace UNO
                 {
                     sprite.Width = 100;
                     sprite.Height = 70;
-
                     if (sprite.Image != null)
                     {
                         RotateFlipType rotacion = numeroJugador == 2 ? RotateFlipType.Rotate270FlipNone : RotateFlipType.Rotate90FlipNone;
                         sprite.Image.RotateFlip(rotacion);
                     }
                 }
-
-                sprite.Click += Carta_Click;
+                if (esMiMano) sprite.Click += Carta_Click;
                 panel.Controls.Add(sprite);
             }
         }
 
         private void LimpiarPanelCartas(FlowLayoutPanel panel)
         {
-            foreach (Control control in panel.Controls)
+            while (panel.Controls.Count > 0)
             {
+                Control control = panel.Controls[0];
+                panel.Controls.RemoveAt(0);
                 PictureBox carta = control as PictureBox;
                 if (carta != null && carta.Image != null)
                 {
                     carta.Image.Dispose();
                     carta.Image = null;
                 }
-
                 control.Dispose();
             }
-
-            panel.Controls.Clear();
         }
 
         private void ActualizarIndicadorColor()
@@ -202,7 +207,7 @@ namespace UNO
 
             if (nuevo_icono != null)
                 icono_color_juego.Image = (Image)nuevo_icono.Clone();
-            
+
             icono_color_juego.SizeMode = PictureBoxSizeMode.StretchImage;
         }
 
@@ -239,12 +244,15 @@ namespace UNO
         // Evento que controla el juego cuando se hace click en una carta
         private void Carta_Click(object sender, EventArgs e)
         {
-            if (this.partida_terminada) return;
+            if (!partida_iniciada)
+            {
+                MessageBox.Show("Esperando a que se conecten los tres jugadores.");
+                return;
+            }
 
+            if (this.partida_terminada || this.accion_pendiente) return;
             PictureBox pic_box_click = sender as PictureBox;
             if (pic_box_click == null) return;
-
-            // Recupera la carta lógica
             Carta carta_usada = pic_box_click.Tag as Carta;
             if (carta_usada == null) return;
 
@@ -253,24 +261,23 @@ namespace UNO
                 MessageBox.Show("¡No es tu turno!", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             if (this.director.cartas_en_pila.Count == 0) return;
 
             Carta carta_apilada = this.director.cartas_en_pila.Last();
+            // El servidor decide finalmente si una carta es válida (especialmente el +4).
             if (!this.director.JugadaValida(carta_usada, carta_apilada))
             {
                 MessageBox.Show("¡Jugada inválida! La carta no coincide en color, número o tipo.", "Reglas del UNO", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            int jugador_que_jugo = this.director.turno_actual;
-            //Enviar la carta jugada al servidor
-            cliente.EnviarAccion(
-                $"JUGAR_CARTA|{carta_usada.getColor()}|{carta_usada.getTipo()}|{carta_usada.getNumero()}"
-                );
-            CerrarVentanaUNO();
-            this.director.RealizarJugada(carta_usada);
-            TerminarAccion(jugador_que_jugo);
+            string mensaje = $"JUGAR_CARTA|{carta_usada.getColor()}|{carta_usada.getTipo()}|{carta_usada.getNumero()}";
+            if (carta_usada.getTipo() == TipoCarta.COMODIN || carta_usada.getTipo() == TipoCarta.MASCUATRO)
+                mensaje += "|" + SolicitarEleccionColor().ToString();
+
+            this.accion_pendiente = true;
+            cliente.EnviarAccion(mensaje);
+            // NO se modifica la mano, la pila ni el turno aquí.
         }
 
         //Ahora cada computadora solamente podrá seleccionar las cartas de su jugador, siempre que sea su turno
@@ -297,40 +304,20 @@ namespace UNO
 
         private void TerminarAccion(int jugador_que_jugo)
         {
-            string ganador = ObtenerNombreGanador();
-
-            if (ganador != null)
-            {
-                this.partida_terminada = true;
-                this.jugador_pendiente_uno = -1;
-                ActualizarInterfaz();
-                ImprimirResultados(ganador);
-                return;
-            }
-
-            // Si la acción dejó al jugador con una sola carta, se habilita UNO.
-            if (ContarCartas(jugador_que_jugo) == 1)
-                jugador_pendiente_uno = jugador_que_jugo;
-            else
-                jugador_pendiente_uno = -1;
-
+            // La jugada ya fue confirmada por el servidor.
+            // El ganador solo se determina cuando llega GANADOR.
             ActualizarInterfaz();
         }
 
         private int ContarCartas(int numero_jugador)
         {
-            if (numero_jugador == 1) return this.director.jugador1.ContarCartas();
-            if (numero_jugador == 2) return this.director.jugador2.ContarCartas();
-            return this.director.jugador3.ContarCartas();
+            return this.director.ContarCartasServidor(numero_jugador);
         }
 
         private string ObtenerNombreGanador()
         {
-            if (this.director.jugador1.ContarCartas() == 0) return this.director.jugador1.GetNombre();
-            if (this.director.jugador2.ContarCartas() == 0) return this.director.jugador2.GetNombre();
-            if (this.director.jugador3.ContarCartas() == 0) return this.director.jugador3.GetNombre();
-
-            return null;
+            if (!this.director.partida_terminada) return null;
+            return ObtenerJugador(this.director.numero_ganador).GetNombre();
         }
 
         private void CerrarVentanaUNO()
@@ -341,20 +328,10 @@ namespace UNO
 
         private void boton_uno_Click(object sender, EventArgs e)
         {
-            if (this.jugador_pendiente_uno == -1 || this.partida_terminada) return;
-
-            //únicamente el jugador que tiene pendiente anunciar UNO podrá hacerlo.
-            if (this.jugador_pendiente_uno != cliente.NumeroJugador)
-                return;
-
-            this.director.GritarUNO(this.jugador_pendiente_uno);
-
+            if (!this.partida_iniciada || this.jugador_pendiente_uno == -1 || this.partida_terminada) return; //solo se puede gritar UNO cuando la partida está iniciada y corresponde a ese jugador
+            if (this.jugador_pendiente_uno != cliente.NumeroJugador) return;
             cliente.EnviarAccion("UNO");
-            string nombre = ObtenerJugador(this.jugador_pendiente_uno).GetNombre();
-
-            this.jugador_pendiente_uno = -1;
-            this.boton_uno.Visible = false;
-            MostrarAvisoTemporal($"¡{nombre} gritó UNO!");
+            // Esperar JUGADOR_UNO para ocultar el botón.
         }
 
         private Jugador ObtenerJugador(int numero_jugador)
@@ -366,72 +343,27 @@ namespace UNO
 
         private void RobarMazoCarta(object sender, EventArgs e)
         {
-            if (this.partida_terminada)
+            if (!partida_iniciada)
+            {
+                MessageBox.Show("Esperando a que se conecten los tres jugadores.");
                 return;
+            }
 
-            //verifica que sea el turno de este jugador
-
+            if (this.partida_terminada || this.accion_pendiente) return;
             if (this.director.turno_actual != cliente.NumeroJugador)
             {
                 MessageBox.Show("¡No es tu turno!");
                 return;
             }
-
-            int jugador_actual = this.director.turno_actual;
+            this.accion_pendiente = true;
             cliente.EnviarAccion("ROBAR_CARTA");
-            CerrarVentanaUNO();
-
-            Carta robada = RobarCartaDisponible();
-            if (robada == null)
-            {
-                MessageBox.Show("No quedan cartas disponibles en el mazo ni en la pila de descarte.", "Mazo vacío", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            ObtenerJugador(jugador_actual).RecibirCarta(robada);
-            this.director.CancelarUNO(jugador_actual);
-            this.director.RegistrarRoboCarta();
-
-            bool es_valida = this.director.JugadaValida(robada, this.director.cartas_en_pila.Last());
-            if (es_valida)
-            {
-                if (JugadaEstrategica(robada))
-                {
-                    this.director.RealizarJugada(robada);
-                    TerminarAccion(jugador_actual);
-                    return;
-                }
-
-                MostrarAvisoTemporal("Decidiste conservar la carta.");
-            }
-            else
-            {
-                string detalle = robada.getTipo() == TipoCarta.NUMERO ? $"Robaste una carta {robada.getColor()} {robada.getNumero()}. No puedes jugarla, así que pierdes el turno." : $"Robaste una carta {robada.getTipo()} de color {robada.getColor()}. No puedes jugarla, así que pierdes el turno.";
-                MostrarAvisoTemporal(detalle);
-            }
-
-            this.director.PasarTurno();
-            ActualizarInterfaz();
+            // El servidor enviará CARTA_ROBADA y, si es válida, DECIDIR_ROBO.
         }
 
         private Carta RobarCartaDisponible()
         {
-            Carta carta = this.director.baraja.RobarCarta();
-            if (carta != null) return carta;
-
-            // Conserva la carta superior de la pila y devuelve el resto a la baraja.
-            if (this.director.cartas_en_pila.Count <= 1) return null;
-
-            Carta superior = this.director.cartas_en_pila.Last();
-
-            for (int i = 0; i < this.director.cartas_en_pila.Count - 1; i++)
-                this.director.baraja.RegresarCarta(this.director.cartas_en_pila[i]);
-
-            this.director.cartas_en_pila.Clear();
-            this.director.cartas_en_pila.Add(superior);
-            this.director.baraja.Barajar();
-
-            return this.director.baraja.RobarCarta();
+            // El servidor es el único que puede sacar cartas del mazo.
+            return null;
         }
 
         private bool JugadaEstrategica(Carta robada)
@@ -493,7 +425,38 @@ namespace UNO
                 return ventana.ShowDialog(this) == DialogResult.Yes;
             }
         }
-                
+
+
+        // Ventana de selección de color trasladada de LogicaUNO a la interfaz.
+        private ColorCarta SolicitarEleccionColor()
+        {
+            ColorCarta colorElegido = ColorCarta.ROJO;
+            using (Form ventanaColor = new Form())
+            {
+                ventanaColor.Width = 350;
+                ventanaColor.Height = 150;
+                ventanaColor.FormBorderStyle = FormBorderStyle.FixedDialog;
+                ventanaColor.Text = "Elige un color para el Comodín";
+                ventanaColor.StartPosition = FormStartPosition.CenterParent;
+                Label lbl = new Label() { Text = "¿Qué color deseas elegir?", Left = 20, Top = 20, Width = 250 };
+                ventanaColor.Controls.Add(lbl);
+                Button btnRojo = new Button() { Text = "Rojo", Left = 20, Top = 60, BackColor = Color.Red, ForeColor = Color.White };
+                Button btnAmarillo = new Button() { Text = "Amarillo", Left = 90, Top = 60, BackColor = Color.Yellow };
+                Button btnVerde = new Button() { Text = "Verde", Left = 160, Top = 60, BackColor = Color.Green, ForeColor = Color.White };
+                Button btnAzul = new Button() { Text = "Azul", Left = 230, Top = 60, BackColor = Color.Blue, ForeColor = Color.White };
+                btnRojo.Click += (s, e) => { colorElegido = ColorCarta.ROJO; ventanaColor.Close(); };
+                btnAmarillo.Click += (s, e) => { colorElegido = ColorCarta.AMARILLO; ventanaColor.Close(); };
+                btnVerde.Click += (s, e) => { colorElegido = ColorCarta.VERDE; ventanaColor.Close(); };
+                btnAzul.Click += (s, e) => { colorElegido = ColorCarta.AZUL; ventanaColor.Close(); };
+                ventanaColor.Controls.Add(btnRojo);
+                ventanaColor.Controls.Add(btnAmarillo);
+                ventanaColor.Controls.Add(btnVerde);
+                ventanaColor.Controls.Add(btnAzul);
+                ventanaColor.ShowDialog(this);
+            }
+            return colorElegido;
+        }
+
         private PictureBox ObtenerSpriteCarta(Carta carta)
         {
             PictureBox pic_box = new PictureBox();
@@ -541,11 +504,11 @@ namespace UNO
                 // REVERSA
                 else if (carta.getTipo() == TipoCarta.REVERSA)
                     nombre_recurso = color + "_switch";
-                
+
                 // +2
                 else if (carta.getTipo() == TipoCarta.MASDOS)
                     nombre_recurso = color + "_plus";
-                    
+
                 if (!string.IsNullOrEmpty(nombre_recurso))
                 {
                     Image recurso = Properties.Resources.ResourceManager.GetObject(nombre_recurso) as Image;
@@ -565,22 +528,10 @@ namespace UNO
 
         private void ReiniciarJuego(bool mostrarMensaje)
         {
-            string nombre1 = this.director.jugador1.GetNombre();
-            string nombre2 = this.director.jugador2.GetNombre();
-            string nombre3 = this.director.jugador3.GetNombre();
-
-            this.timerAviso.Stop();
-            this.lblAvisoTemp.Text = "";
-            this.lblAvisoTemp.Visible = false;
-
-            this.jugador_pendiente_uno = -1;
-            this.partida_terminada = false;
-
-            this.director.ReiniciarRonda(nombre1, nombre2, nombre3);
-            ActualizarInterfaz();
-
-            if (mostrarMensaje)
-                MessageBox.Show("Se ha iniciado una nueva partida.", "Reiniciar", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            // Solo el servidor puede iniciar una ronda para los tres jugadores.
+            if (this.esperando_reinicio) return;
+            this.esperando_reinicio = true;
+            cliente.EnviarAccion("REINICIAR");
         }
 
         // Botón para reinicio de juego
@@ -601,25 +552,21 @@ namespace UNO
         private void ImprimirResultados(string nombre_ganador)
         {
             int jugador_con_mas_cartas = 1;
-            int maximo_cartas = this.director.jugador1.ContarCartas();
+            int maximo_cartas = ContarCartas(1);
 
-            if (this.director.jugador2.ContarCartas() > maximo_cartas)
+            if (ContarCartas(2) > maximo_cartas)
             {
-                maximo_cartas = this.director.jugador2.ContarCartas();
+                maximo_cartas = ContarCartas(2);
                 jugador_con_mas_cartas = 2;
             }
-
-            if (this.director.jugador3.ContarCartas() > maximo_cartas)
+            if (ContarCartas(3) > maximo_cartas)
                 jugador_con_mas_cartas = 3;
 
             string nombre_castigado = ObtenerJugador(jugador_con_mas_cartas).GetNombre();
             Form3 ventanaResumen = new Form3(nombre_ganador, nombre_castigado);
             DialogResult resultado = ventanaResumen.ShowDialog(this);
-
-            if (resultado == DialogResult.Retry)
-                ReiniciarJuego(false);
-            else
-                Close();
+            if (resultado == DialogResult.Retry) ReiniciarJuego(false);
+            else Close();
         }
 
         private void panel_Superior_GroupBox4_Paint(object sender, PaintEventArgs e)
@@ -647,46 +594,153 @@ namespace UNO
         private void ProcesarMensajeServidor(string mensaje)
         {
             string[] partes = mensaje.Split('|');
-
             switch (partes[0])
             {
+                case "JUGADOR":
+                    this.director.AsignarJugadorLocal(cliente.NumeroJugador);
+                    ActualizarInterfaz();
+                    break;
+
+                case "JUGADORES":
+                    if (partes.Length < 4) break;
+                    this.director.RecibirNombresServidor(partes[1], partes[2], partes[3]);
+                    this.groupBox1.Text = partes[1];
+                    this.groupBox2.Text = partes[2];
+                    this.groupBox3.Text = partes[3];
+                    ActualizarInterfaz();
+                    break;
+
+                case "REINICIO_CONFIRMADO":
+                    this.timerAviso.Stop();
+                    this.lblAvisoTemp.Text = "";
+                    this.jugador_pendiente_uno = -1;
+                    this.partida_terminada = false;
+                    this.partida_iniciada = false; //evita que se puedan jugar cartas mientras el servidor reparte una nueva mano
+                    this.accion_pendiente = false;
+                    this.esperando_reinicio = false;
+                    this.director.ReiniciarRonda(this.director.jugador1.GetNombre(),this.director.jugador2.GetNombre(),this.director.jugador3.GetNombre());
+                    ActualizarInterfaz();
+                    break;
+
                 case "MANO_INICIAL":
-
-                    // Obtener las cartas del jugador actual
-                    Jugador jugador = ObtenerJugador(cliente.NumeroJugador);
-
-                    // Quitar las cartas generadas localmente
-                    jugador.GetMano().Clear();
-
-                    // Agregar las cartas enviadas por el servidor
-                    foreach (string datos in cliente.ManoInicial)
+                    List<Carta> cartas = new List<Carta>();
+                    if (cliente.ManoInicial != null)
                     {
-                        Carta carta = ConvertirCarta(datos);
-                        jugador.RecibirCarta(carta);
+                        foreach (string datos in cliente.ManoInicial)
+                            if (!string.IsNullOrWhiteSpace(datos)) cartas.Add(ConvertirCarta(datos));
                     }
-
+                    this.director.RecibirManoServidor(cliente.NumeroJugador, cartas);
+                    this.partida_iniciada = true;
                     ActualizarInterfaz();
                     break;
 
                 case "CARTA_MESA":
-
-                    // Actualizar la carta inicial
-                    Carta cartaMesa = ConvertirCarta(cliente.CartaMesa);
-
-                    this.director.cartas_en_pila.Clear();
-                    this.director.cartas_en_pila.Add(cartaMesa);
-
-                    this.director.color_actual = cartaMesa.getColor();
-
+                    this.director.RecibirCartaMesaServidor(ConvertirCarta(cliente.CartaMesa));
                     ActualizarInterfaz();
                     break;
 
                 case "TURNO":
-
-                    // Actualizar el turno con el valor del servidor
-                    this.director.turno_actual = cliente.TurnoActual;
-
+                    this.director.ActualizarTurnoServidor(cliente.TurnoActual);
+                    this.accion_pendiente = false;
                     ActualizarInterfaz();
+                    break;
+
+                case "SENTIDO":
+                    if (partes.Length >= 2)
+                        this.director.ActualizarSentidoServidor(int.Parse(partes[1]));
+                    break;
+
+                case "COLOR_ACTUAL":
+                    if (partes.Length >= 2)
+                        this.director.ActualizarColorServidor((ColorCarta)Enum.Parse(typeof(ColorCarta), partes[1]));
+                    ActualizarInterfaz();
+                    break;
+
+                case "CANTIDADES":
+                    if (partes.Length >= 4)
+                        for (int i = 1; i <= 3; i++)
+                            this.director.ActualizarCantidadCartasServidor(i, int.Parse(partes[i]));
+                    ActualizarInterfaz();
+                    break;
+
+                case "CARTA_JUGADA":
+                    if (partes.Length < 5) break;
+                    Carta jugada = ConvertirCarta(partes[2] + "|" + partes[3] + "|" + partes[4]);
+                    this.director.ConfirmarJugadaServidor(int.Parse(partes[1]), jugada);
+                    this.accion_pendiente = false;
+                    ActualizarInterfaz();
+                    break;
+
+                case "CARTA_ROBADA":
+                    if (partes.Length < 4) break;
+                    Carta robada = ConvertirCarta(partes[1] + "|" + partes[2] + "|" + partes[3]);
+                    this.director.RecibirCartaRobadaServidor(cliente.NumeroJugador, robada);
+                    ActualizarInterfaz();
+                    break;
+
+                case "DECIDIR_ROBO":
+                    if (partes.Length < 4) break;
+                    Carta cartaRobada = ConvertirCarta(partes[1] + "|" + partes[2] + "|" + partes[3]);
+                    bool jugar = JugadaEstrategica(cartaRobada);
+                    if (jugar)
+                    {
+                        string decision = "DECISION_ROBO|JUGAR";
+                        if (cartaRobada.getTipo() == TipoCarta.COMODIN || cartaRobada.getTipo() == TipoCarta.MASCUATRO)
+                            decision += "|" + SolicitarEleccionColor().ToString();
+                        cliente.EnviarAccion(decision);
+                    }
+                    else cliente.EnviarAccion("DECISION_ROBO|CONSERVAR");
+                    break;
+
+                case "UNO_PENDIENTE":
+                    if (partes.Length >= 2) this.jugador_pendiente_uno = int.Parse(partes[1]);
+                    ActualizarInterfaz();
+                    break;
+
+                case "JUGADOR_UNO":
+                    if (partes.Length < 2) break;
+                    int numeroUNO = int.Parse(partes[1]);
+                    this.director.GritarUNO(numeroUNO);
+                    this.jugador_pendiente_uno = -1;
+                    MostrarAvisoTemporal("¡" + ObtenerJugador(numeroUNO).GetNombre() + " gritó UNO!");
+                    ActualizarInterfaz();
+                    break;
+
+                case "CASTIGO_UNO":
+                    if (partes.Length >= 2)
+                    {
+                        this.jugador_pendiente_uno = -1;
+                        MostrarAvisoTemporal("¡" + ObtenerJugador(int.Parse(partes[1])).GetNombre() + " olvidó decir UNO! Recibe 2 cartas.");
+                    }
+                    ActualizarInterfaz();
+                    break;
+
+                case "GANADOR":
+                    if (partes.Length < 2) break;
+                    this.director.RecibirGanadorServidor(int.Parse(partes[1]));
+                    this.partida_terminada = true;
+                    this.accion_pendiente = false;
+                    this.jugador_pendiente_uno = -1;
+                    ActualizarInterfaz();
+                    // Se espera a que lleguen las cantidades finales antes de mostrar Form3.
+                    ImprimirResultados(ObtenerNombreGanador());
+                    break;
+
+                case "ERROR":
+                    this.accion_pendiente = false;
+                    this.esperando_reinicio = false;
+                    MostrarAvisoTemporal("Error del servidor: " + mensaje.Substring("ERROR|".Length));
+                    break;
+
+                case "JUGADOR_DESCONECTADO":
+                    this.partida_terminada = true;
+                    this.accion_pendiente = false;
+                    MessageBox.Show("Se desconectó un jugador. La partida se ha detenido.");
+                    break;
+
+                case "SERVIDOR_LLENO":
+                    this.partida_terminada = true;
+                    MessageBox.Show("El servidor ya tiene tres jugadores.");
                     break;
             }
         }
