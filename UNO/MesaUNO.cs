@@ -38,11 +38,12 @@ namespace UNO
             this.timerAviso = new Timer();
             this.timerAviso.Interval = 2500;
 
+            //conexion al servidor
+            cliente = new ClienteJuego();
+
             IniciarControles();
             ActualizarInterfaz();
 
-            //conexion al servidor
-            cliente = new ClienteJuego();
 
 
             cliente.MensajeRecibido += (mensaje) =>
@@ -56,6 +57,7 @@ namespace UNO
                     }));
                 }
             };
+            var identificador = this.Handle;
 
             cliente.ConectarAlServidor("10.103.150.202", 11111, n1);
         }
@@ -326,7 +328,7 @@ namespace UNO
 
         private void boton_uno_Click(object sender, EventArgs e)
         {
-            if (this.jugador_pendiente_uno == -1 || this.partida_terminada) return;
+            if (!this.partida_iniciada || this.jugador_pendiente_uno == -1 || this.partida_terminada) return; //solo se puede gritar UNO cuando la partida está iniciada y corresponde a ese jugador
             if (this.jugador_pendiente_uno != cliente.NumeroJugador) return;
             cliente.EnviarAccion("UNO");
             // Esperar JUGADOR_UNO para ocultar el botón.
@@ -613,12 +615,10 @@ namespace UNO
                     this.lblAvisoTemp.Text = "";
                     this.jugador_pendiente_uno = -1;
                     this.partida_terminada = false;
+                    this.partida_iniciada = false; //evita que se puedan jugar cartas mientras el servidor reparte una nueva mano
                     this.accion_pendiente = false;
                     this.esperando_reinicio = false;
-                    this.director.ReiniciarRonda(
-                        this.director.jugador1.GetNombre(),
-                        this.director.jugador2.GetNombre(),
-                        this.director.jugador3.GetNombre());
+                    this.director.ReiniciarRonda(this.director.jugador1.GetNombre(),this.director.jugador2.GetNombre(),this.director.jugador3.GetNombre());
                     ActualizarInterfaz();
                     break;
 

@@ -271,9 +271,6 @@ namespace UNO
             this.partida_terminada = true;
         }
 
-        // Estos métodos se conservan temporalmente para
-        // mantener compatibilidad con MesaUNO.
-        // No deben modificar el juego localmente.
 
         public void RealizarJugada(Carta carta_jugada)
         {
