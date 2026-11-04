@@ -11,7 +11,7 @@ namespace UNO
         private LogicaUNO director;
         private Timer timerAviso;
 
-        private CllienteJuego cliente;
+        private ClienteJuego cliente;
 
         // Conserva al jugador que acaba de quedarse con una carta.
         // La oportunidad de cantar UNO termina cuando comienza la siguiente acción válida.
@@ -39,8 +39,22 @@ namespace UNO
             ActualizarInterfaz();
 
             //conexion al servidor
-            cliente = new CllienteJuego();
-            cliente.ConectarAlServidor("127.0.0.1", 11111, n1);
+            cliente = new ClienteJuego();
+
+
+            cliente.MensajeRecibido += (mensaje) =>
+            {
+                if (this.IsHandleCreated && !this.IsDisposed)
+                {
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        if (!this.IsDisposed)
+                            ProcesarMensajeServidor(mensaje);
+                    }));
+                }
+            };
+
+            cliente.ConectarAlServidor("10.103.150.202", 11111, n1);
         }
 
         private void IniciarControles()
@@ -611,6 +625,70 @@ namespace UNO
         private void panel_Superior_GroupBox4_Paint(object sender, PaintEventArgs e)
         {
 
+        }
+        //convierte una cadena recibida del servidor, como ROJO|NUMERO|5, en un objeto Carta compatible con tu juego.
+        private Carta ConvertirCarta(string datos)
+        {
+            string[] partes = datos.Split('|');
+
+            ColorCarta color = (ColorCarta)Enum.Parse(typeof(ColorCarta), partes[0]);
+
+            TipoCarta tipo = (TipoCarta)Enum.Parse(typeof(TipoCarta), partes[1]);
+
+            int numero = int.Parse(partes[2]);
+
+            if (tipo == TipoCarta.NUMERO)
+                return new Carta(color, tipo, numero);
+
+            return new Carta(color, tipo);
+        }
+
+        //cuando el servidor envie MANO_INICIAL, se reemplazarán las cartas locales del jugador correspondiente por las siete cartas recibidas.
+        private void ProcesarMensajeServidor(string mensaje)
+        {
+            string[] partes = mensaje.Split('|');
+
+            switch (partes[0])
+            {
+                case "MANO_INICIAL":
+
+                    // Obtener las cartas del jugador actual
+                    Jugador jugador = ObtenerJugador(cliente.NumeroJugador);
+
+                    // Quitar las cartas generadas localmente
+                    jugador.GetMano().Clear();
+
+                    // Agregar las cartas enviadas por el servidor
+                    foreach (string datos in cliente.ManoInicial)
+                    {
+                        Carta carta = ConvertirCarta(datos);
+                        jugador.RecibirCarta(carta);
+                    }
+
+                    ActualizarInterfaz();
+                    break;
+
+                case "CARTA_MESA":
+
+                    // Actualizar la carta inicial
+                    Carta cartaMesa = ConvertirCarta(cliente.CartaMesa);
+
+                    this.director.cartas_en_pila.Clear();
+                    this.director.cartas_en_pila.Add(cartaMesa);
+
+                    this.director.color_actual = cartaMesa.getColor();
+
+                    ActualizarInterfaz();
+                    break;
+
+                case "TURNO":
+
+                    // Actualizar el turno con el valor del servidor
+                    this.director.turno_actual = cliente.TurnoActual;
+
+                    ActualizarInterfaz();
+                    break;
+            }
         }
     }
 }
