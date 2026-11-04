@@ -16,7 +16,7 @@ namespace UNO
         {
             InitializeComponent();
 
-            // Mantiene la ventana de menú fija como me pediste antes
+            // Mantiene la ventana de menú fija
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
         }
@@ -24,60 +24,22 @@ namespace UNO
         private void button1_Click(object sender, EventArgs e)
         {
             string nombreJugador1 = "";
-            string nombreJugador2 = "";
-            string nombreJugador3 = "";
 
-            // --- JUGADOR 1 ---
+            // Registro del jugador de esta computadora
             Registro reg1 = new Registro();
-            reg1.Text = "Registro - Jugador 1";
+            reg1.Text = "Registro de jugador";
+
             if (reg1.ShowDialog() == DialogResult.OK)
             {
                 nombreJugador1 = reg1.UsuarioRegistrado;
             }
             else
             {
-                return; // Si cancela, se detiene
-            }
-
-            // --- JUGADOR 2 ---
-            Registro reg2 = new Registro();
-            reg2.Text = "Registro - Jugador 2";
-            if (reg2.ShowDialog() == DialogResult.OK)
-            {
-                nombreJugador2 = reg2.UsuarioRegistrado;
-
-                // Validación por si repiten el mismo nombre en la misma partida
-                if (nombreJugador2 == nombreJugador1)
-                {
-                    MessageBox.Show("Este jugador ya fue registrado. Ingresa un nombre diferente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-            }
-            else
-            {
                 return;
             }
 
-            // --- JUGADOR 3 ---
-            Registro reg3 = new Registro();
-            reg3.Text = "Registro - Jugador 3";
-            if (reg3.ShowDialog() == DialogResult.OK)
-            {
-                nombreJugador3 = reg3.UsuarioRegistrado;
-
-                if (nombreJugador3 == nombreJugador1 || nombreJugador3 == nombreJugador2)
-                {
-                    MessageBox.Show("Este jugador ya fue registrado. Ingresa un nombre diferente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-            }
-            else
-            {
-                return;
-            }
-
-            // Se abre el tablero de juego (Form1) pasándole los 3 nombres limpios
-            MesaUNO tableroJuego = new MesaUNO(nombreJugador1, nombreJugador2, nombreJugador3);
+            // Abre el tablero con el jugador registrado
+            MesaUNO tableroJuego = new MesaUNO(nombreJugador1, "", "");
             tableroJuego.Show();
 
             // Oculta el menú principal
