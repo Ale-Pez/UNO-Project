@@ -33,9 +33,20 @@ namespace UNO
         }
 
         //  remover una carta de la mano cuando la juega
-        public void JugarCarta(Carta carta)
+        public bool JugarCarta(Carta carta)
         {
-            mano.Remove(carta);
+            for (int i = 0; i < mano.Count; i++)
+            {
+                if (mano[i].getColor() == carta.getColor() &&
+                    mano[i].getTipo() == carta.getTipo() &&
+                    mano[i].getNumero() == carta.getNumero()) {
+                    
+                    mano.RemoveAt(i);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         // para saber cartas le quedan al jugador
@@ -45,7 +56,3 @@ namespace UNO
         }
     }
 }
-
-
-
-

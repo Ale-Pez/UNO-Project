@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using UNO;
 
 namespace ServidorUNO
 {
@@ -15,24 +16,10 @@ namespace ServidorUNO
         static List<Socket> clientes = new List<Socket>();
         static List<string> nombres = new List<string>();
         static object bloqueo = new object();
+        static LogicaUNO logica;
 
-        static List<string> baraja = new List<string>();
-        static List<string> mano1 = new List<string>();
-        static List<string> mano2 = new List<string>();
-        static List<string> mano3 = new List<string>();
-        static List<string> descartes = new List<string>();
-
-        static string cartaMesa = "";
-        static string colorActual = "";
-        static int turnoActual = 1;
-        static int sentidoJuego = 1;
         static bool partidaIniciada = false;
         static bool partidaTerminada = false;
-        static int jugadorPendienteUNO = -1;
-        static HashSet<int> jugadoresConUNO = new HashSet<int>();
-        static int jugadorEsperandoDecision = -1;
-        static string cartaRobadaPendiente = "";
-        static Random random = new Random();
 
         // Una sola API y una sola partida para las tres computadoras.
         static readonly HttpClient clienteApi = new HttpClient();
@@ -84,6 +71,7 @@ namespace ServidorUNO
         {
             idPartidaActual = -1;
             idJugadores = new int[3];
+
             for (int i = 0; i < 3; i++)
             {
                 string respuesta = PostApi("/jugadores/registrar",
@@ -120,156 +108,135 @@ namespace ServidorUNO
                 ",\"ganador\":" + JsonTexto(nombres[ganador - 1]) + "}");
         }
 
-        static void Main(string[] args)
+        // Convierte COLOR|TIPO|NUMERO en un objeto Carta.
+        static Carta TextoACarta(string texto)
         {
-            IniciarServidor();
-        }
+            string[] partes = texto.Split('|');
 
-        static void CrearBaraja()
-        {
-            baraja.Clear();
-            string[] colores = { "ROJO", "AMARILLO", "VERDE", "AZUL" };
-            foreach (string color in colores)
-            {
-                baraja.Add(color + "|NUMERO|0");
-                for (int numero = 1; numero <= 9; numero++)
-                {
-                    baraja.Add(color + "|NUMERO|" + numero);
-                    baraja.Add(color + "|NUMERO|" + numero);
-                }
-                for (int i = 0; i < 2; i++)
-                {
-                    baraja.Add(color + "|BLOQUEA|-1");
-                    baraja.Add(color + "|REVERSA|-1");
-                    baraja.Add(color + "|MASDOS|-1");
-                }
-            }
-            for (int i = 0; i < 4; i++)
-            {
-                baraja.Add("ESPECIAL|COMODIN|-1");
-                baraja.Add("ESPECIAL|MASCUATRO|-1");
-            }
-        }
+            if (partes.Length != 3) return null;
 
-        static void BarajarCartas()
-        {
-            for (int i = baraja.Count - 1; i > 0; i--)
-            {
-                int j = random.Next(i + 1);
-                string temporal = baraja[i];
-                baraja[i] = baraja[j];
-                baraja[j] = temporal;
-            }
-        }
+            int numero;
 
-        static string RobarCarta()
-        {
-            if (baraja.Count == 0 && descartes.Count > 0)
-            {
-                // La carta visible permanece en mesa; se reciclan solo descartes anteriores.
-                baraja.AddRange(descartes);
-                descartes.Clear();
-                BarajarCartas();
-            }
-            if (baraja.Count == 0) return "";
-            string carta = baraja[baraja.Count - 1];
-            baraja.RemoveAt(baraja.Count - 1);
+            if (!int.TryParse(partes[2], out numero))
+                return null;
+
+            Carta carta = new Carta(partes[0], partes[1]);
+            carta.setNumero(numero);
             return carta;
         }
 
-        static List<string> ObtenerMano(int numeroJugador)
+        // Convierte un objeto Carta en COLOR|TIPO|NUMERO.
+        static string CartaATexto(Carta carta)
         {
-            if (numeroJugador == 1) return mano1;
-            if (numeroJugador == 2) return mano2;
-            return mano3;
+            if (carta == null)
+                return "";
+
+            return carta.getColor().ToString() + "|" +
+                carta.getTipo().ToString() + "|" +
+                carta.getNumero();
         }
 
-        static int SiguienteJugador(int numeroJugador)
+        static bool ObtenerColorElegido(string texto, out ColorCarta color)
         {
-            int siguiente = numeroJugador + sentidoJuego;
-            if (siguiente > 3) siguiente = 1;
-            if (siguiente < 1) siguiente = 3;
-            return siguiente;
-        }
+            color = ColorCarta.ESPECIAL;
 
-        static string ColorDe(string carta) { return carta.Split('|')[0]; }
-        static string TipoDe(string carta) { return carta.Split('|')[1]; }
-        static string NumeroDe(string carta) { return carta.Split('|')[2]; }
+            if (string.IsNullOrWhiteSpace(texto))
+                return false;
 
-        static bool ColorElegidoValido(string color)
-        {
-            return color == "ROJO" || color == "AMARILLO" || color == "VERDE" || color == "AZUL";
-        }
+            if (!Enum.TryParse<ColorCarta>(texto, true, out color))
+                return false;
 
-        static bool JugadaValida(string carta, List<string> mano)
-        {
-            string tipo = TipoDe(carta);
-            if (tipo == "COMODIN") return true;
-            if (tipo == "MASCUATRO")
-            {
-                // Regla del +4: no puede tener otra carta del color activo.
-                foreach (string otra in mano)
-                    if (ColorDe(otra) == colorActual) return false;
-                return true;
-            }
-            if (ColorDe(carta) == colorActual) return true;
-            if (tipo == "NUMERO" && TipoDe(cartaMesa) == "NUMERO" &&
-                NumeroDe(carta) == NumeroDe(cartaMesa)) return true;
-            if (tipo != "NUMERO" && tipo == TipoDe(cartaMesa)) return true;
-            return false;
+            return color == ColorCarta.ROJO || color == ColorCarta.AMARILLO ||
+                color == ColorCarta.VERDE || color == ColorCarta.AZUL;
         }
 
         static void EnviarCantidades()
         {
-            EnviarATodos("CANTIDADES|" + mano1.Count + "|" + mano2.Count + "|" + mano3.Count);
+            if (logica == null)
+                return;
+
+            EnviarATodos("CANTIDADES|" + logica.ObtenerCantidadCartas(1) + "|" +
+                logica.ObtenerCantidadCartas(2) + "|" + logica.ObtenerCantidadCartas(3));
+        }
+
+        static string ObtenerTextoMano(int numeroJugador)
+        {
+            List<Carta> mano = logica.ObtenerMano(numeroJugador);
+            List<string> cartas = new List<string>();
+
+            foreach (Carta carta in mano)
+                cartas.Add(CartaATexto(carta));
+
+            return string.Join(";", cartas);
         }
 
         static void EnviarManos()
         {
-            EnviarJugador(1, "MANO_INICIAL|" + string.Join(";", mano1));
-            EnviarJugador(2, "MANO_INICIAL|" + string.Join(";", mano2));
-            EnviarJugador(3, "MANO_INICIAL|" + string.Join(";", mano3));
+            EnviarJugador(1, "MANO_INICIAL|" + ObtenerTextoMano(1));
+            EnviarJugador(2, "MANO_INICIAL|" + ObtenerTextoMano(2));
+            EnviarJugador(3, "MANO_INICIAL|" + ObtenerTextoMano(3));
+        }
+
+        static void EnviarEstado()
+        {
+            if (logica == null)
+                return;
+
+            EnviarATodos("CARTA_MESA|" + CartaATexto(logica.ObtenerCartaSuperior()));
+            EnviarATodos("COLOR_ACTUAL|" + logica.ObtenerColorActual());
+            EnviarATodos("SENTIDO|" + logica.ObtenerSentidoJuego());
+            EnviarCantidades();
+            EnviarATodos("TURNO|" + logica.ObtenerTurnoActual());
         }
 
         static void IniciarPartida()
         {
-            CrearBaraja();
-            BarajarCartas();
-            mano1.Clear(); mano2.Clear(); mano3.Clear(); descartes.Clear();
-            jugadoresConUNO.Clear();
-            jugadorPendienteUNO = -1;
-            jugadorEsperandoDecision = -1;
-            cartaRobadaPendiente = "";
-            sentidoJuego = 1;
-            turnoActual = 1;
+            logica = new LogicaUNO(nombres[0], nombres[1], nombres[2]);
+
             partidaTerminada = false;
-
-            for (int i = 0; i < 7; i++)
-            {
-                mano1.Add(RobarCarta());
-                mano2.Add(RobarCarta());
-                mano3.Add(RobarCarta());
-            }
-            do
-            {
-                cartaMesa = RobarCarta();
-                if (cartaMesa == "") return;
-                if (TipoDe(cartaMesa) != "NUMERO") baraja.Insert(0, cartaMesa);
-            } while (TipoDe(cartaMesa) != "NUMERO");
-
-            colorActual = ColorDe(cartaMesa);
             partidaIniciada = true;
-            Console.WriteLine("La partida ha comenzado. Carta inicial: " + cartaMesa);
-            Console.WriteLine("Turno del jugador " + turnoActual);
+
+            Console.WriteLine("La partida ha comenzado.");
+            Console.WriteLine("Carta inicial: " + CartaATexto(logica.ObtenerCartaSuperior()));
+            Console.WriteLine("Turno del jugador " + logica.ObtenerTurnoActual());
+
             EnviarATodos("JUGADORES|" + nombres[0] + "|" + nombres[1] + "|" + nombres[2]);
             EnviarATodos("REINICIO_CONFIRMADO");
             EnviarManos();
-            EnviarATodos("CARTA_MESA|" + cartaMesa);
-            EnviarATodos("COLOR_ACTUAL|" + colorActual);
-            EnviarATodos("SENTIDO|" + sentidoJuego);
-            EnviarCantidades();
-            EnviarATodos("TURNO|" + turnoActual);
+            EnviarEstado();
             CrearRegistroPartida();
+        }
+
+        static void NotificarJugada(int numeroJugador)
+        {
+            Carta carta = logica.ObtenerCartaSuperior();
+
+            EnviarATodos("CARTA_JUGADA|" + numeroJugador + "|" + CartaATexto(carta));
+            EnviarATodos("COLOR_ACTUAL|" + logica.ObtenerColorActual());
+            EnviarCantidades();
+
+            if (logica.PartidaTerminada())
+            {
+                int ganador = logica.ObtenerGanador();
+
+                partidaTerminada = true;
+
+                EnviarATodos("GANADOR|" + ganador);
+
+                RegistrarGanador(ganador);
+                return;
+            }
+
+            if (logica.ObtenerCantidadCartas(numeroJugador) == 1)
+                EnviarATodos("UNO_PENDIENTE|" + numeroJugador);
+
+            EnviarATodos("SENTIDO|" + logica.ObtenerSentidoJuego());
+            EnviarATodos("TURNO|" + logica.ObtenerTurnoActual());
+        }
+
+        static void Main(string[] args)
+        {
+            IniciarServidor();
         }
 
         static void IniciarServidor()
@@ -329,7 +296,14 @@ namespace ServidorUNO
                     pendiente.Append(contenido);
                 }
             }
-            catch (Exception) { Console.WriteLine("Se perdió la conexión del jugador " + numeroJugador); }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    "Se perdió la conexión del jugador " +
+                    numeroJugador);
+
+                Console.WriteLine(ex.ToString());
+            }
             finally
             {
                 lock (bloqueo)
@@ -347,222 +321,364 @@ namespace ServidorUNO
             }
         }
 
-        static void EntregarCartas(int numeroJugador, int cantidad)
-        {
-            List<string> mano = ObtenerMano(numeroJugador);
-            for (int i = 0; i < cantidad; i++)
-            {
-                string carta = RobarCarta();
-                if (carta == "") break;
-                mano.Add(carta);
-                EnviarJugador(numeroJugador, "CARTA_ROBADA|" + carta);
-            }
-            jugadoresConUNO.Remove(numeroJugador);
-            EnviarCantidades();
-        }
-
-        static void TerminarTurno()
-        {
-            turnoActual = SiguienteJugador(turnoActual);
-            Console.WriteLine("Turno del jugador " + turnoActual);
-            EnviarATodos("TURNO|" + turnoActual);
-        }
-
-        static void JugarCarta(int numeroJugador, string carta, string colorElegido, bool desdeRobo)
-        {
-            List<string> mano = ObtenerMano(numeroJugador);
-            if (!mano.Contains(carta))
-            {
-                EnviarJugador(numeroJugador, "ERROR|CARTA_NO_DISPONIBLE"); return;
-            }
-            if (!JugadaValida(carta, mano))
-            {
-                EnviarJugador(numeroJugador, "ERROR|JUGADA_INVALIDA"); return;
-            }
-            string tipo = TipoDe(carta);
-            if ((tipo == "COMODIN" || tipo == "MASCUATRO") && !ColorElegidoValido(colorElegido))
-            {
-                EnviarJugador(numeroJugador, "ERROR|COLOR_INVALIDO"); return;
-            }
-
-            mano.Remove(carta);
-            Console.WriteLine("Jugador " + numeroJugador + " jugó " + carta);
-            GuardarLog(numeroJugador, "Jugó " + carta);
-            if (cartaMesa != "") descartes.Add(cartaMesa);
-            cartaMesa = carta;
-            colorActual = tipo == "COMODIN" || tipo == "MASCUATRO" ? colorElegido : ColorDe(carta);
-            EnviarATodos("CARTA_JUGADA|" + numeroJugador + "|" + carta);
-            EnviarATodos("COLOR_ACTUAL|" + colorActual);
-            EnviarCantidades();
-
-            // Conserva la regla original: si juega su última carta sin haber dicho UNO,
-            // recibe dos cartas y pierde el turno. Se aplica también a la robada.
-            if (mano.Count == 0 && !jugadoresConUNO.Contains(numeroJugador))
-            {
-                EnviarATodos("CASTIGO_UNO|" + numeroJugador);
-                EntregarCartas(numeroJugador, 2);
-                jugadorPendienteUNO = -1;
-                TerminarTurno();
-                return;
-            }
-            if (mano.Count == 0)
-            {
-                partidaTerminada = true;
-                EnviarATodos("GANADOR|" + numeroJugador);
-                RegistrarGanador(numeroJugador);
-                return;
-            }
-            jugadoresConUNO.Remove(numeroJugador);
-            jugadorPendienteUNO = mano.Count == 1 ? numeroJugador : -1;
-            if (jugadorPendienteUNO != -1) EnviarATodos("UNO_PENDIENTE|" + numeroJugador);
-
-            if (tipo == "REVERSA")
-            {
-                sentidoJuego *= -1;
-                EnviarATodos("SENTIDO|" + sentidoJuego);
-            }
-            if (tipo == "BLOQUEA")
-            {
-                turnoActual = SiguienteJugador(turnoActual);
-            }
-            if (tipo == "MASDOS" || tipo == "MASCUATRO")
-            {
-                int castigado = SiguienteJugador(turnoActual);
-                EntregarCartas(castigado, tipo == "MASDOS" ? 2 : 4);
-                turnoActual = castigado;
-            }
-            TerminarTurno();
-        }
-
         static void ProcesarMensaje(string mensaje, int numeroJugador)
         {
             string[] partes = mensaje.Split('|');
+
             switch (partes[0])
             {
                 case "CONECTAR":
-                    if (partes.Length < 2 || string.IsNullOrWhiteSpace(partes[1])) return;
-                    if (nombres[numeroJugador - 1] != "") return;
+
+                    if (partes.Length < 2 ||
+                        string.IsNullOrWhiteSpace(partes[1]))
+                        return;
+
+                    if (nombres[numeroJugador - 1] != "")
+                        return;
+
                     nombres[numeroJugador - 1] = partes[1];
+
                     Console.WriteLine(partes[1] + " se unió al juego.");
+
                     EnviarATodos("JUGADOR_CONECTADO|" + numeroJugador + "|" + partes[1]);
-                    if (clientes.Count == 3 && !partidaIniciada &&
-                        nombres.TrueForAll(n => n != "") && clientes.TrueForAll(c => c != null))
+
+                    if (clientes.Count == 3 && !partidaIniciada && nombres.TrueForAll(n => n != "") && clientes.TrueForAll(c => c != null))
                         IniciarPartida();
+
                     break;
 
                 case "UNO":
-                    if (!partidaIniciada || partidaTerminada) return;
-                    if (jugadorPendienteUNO == numeroJugador ||
-                        (turnoActual == numeroJugador && ObtenerMano(numeroJugador).Count == 1))
+
+                    if (!partidaIniciada ||
+                        partidaTerminada)
+                        return;
+
+                    if (logica.GritarUNO(numeroJugador))
                     {
-                        jugadoresConUNO.Add(numeroJugador);
-                        jugadorPendienteUNO = -1;
-                        EnviarATodos("JUGADOR_UNO|" + numeroJugador);
-                        GuardarLog(numeroJugador, "Gritó UNO");
+                        EnviarATodos(
+                            "JUGADOR_UNO|" + numeroJugador);
+
+                        GuardarLog(
+                            numeroJugador, "Gritó UNO");
                     }
-                    else EnviarJugador(numeroJugador, "ERROR|UNO_NO_PERMITIDO");
+                    else
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|UNO_NO_PERMITIDO");
+                    }
+
                     break;
 
                 case "JUGAR_CARTA":
-                    if (!partidaIniciada || partidaTerminada) return;
-                    if (turnoActual != numeroJugador) { EnviarJugador(numeroJugador, "ERROR|NO_ES_TU_TURNO"); return; }
-                    if (jugadorEsperandoDecision != -1) { EnviarJugador(numeroJugador, "ERROR|DECISION_ROBO_PENDIENTE"); return; }
-                    if (partes.Length < 4) { EnviarJugador(numeroJugador, "ERROR|FORMATO_CARTA"); return; }
-                    // JUGAR_CARTA|COLOR|TIPO|NUMERO|COLOR_ELEGIDO (último solo comodines)
-                    string carta = partes[1] + "|" + partes[2] + "|" + partes[3];
-                    string color = partes.Length >= 5 ? partes[4] : "";
-                    JugarCarta(numeroJugador, carta, color, false);
+
+                    if (!partidaIniciada ||
+                        partidaTerminada)
+                        return;
+
+                    if (logica.ObtenerTurnoActual() != numeroJugador)
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|NO_ES_TU_TURNO");
+                        return;
+                    }
+
+                    if (partes.Length < 4)
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|FORMATO_CARTA");
+                        return;
+                    }
+
+                    // JUGAR_CARTA|COLOR|TIPO|NUMERO|COLOR_ELEGIDO
+
+                    string textoCarta =
+                        partes[1] + "|" +
+                        partes[2] + "|" +
+                        partes[3];
+
+                    Carta cartaJugada = TextoACarta(textoCarta);
+
+                    if (cartaJugada == null)
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|FORMATO_CARTA");
+                        return;
+                    }
+
+                    ColorCarta colorElegido = ColorCarta.ESPECIAL;
+
+                    if (cartaJugada.getTipo() == TipoCarta.COMODIN ||
+                        cartaJugada.getTipo() == TipoCarta.MASCUATRO)
+                    {
+                        string textoColor =
+                            partes.Length >= 5 ? partes[4] : "";
+
+                        if (!ObtenerColorElegido(
+                            textoColor, out colorElegido))
+                        {
+                            EnviarJugador(
+                                numeroJugador,
+                                "ERROR|COLOR_INVALIDO");
+                            return;
+                        }
+                    }
+
+                    if (logica.RealizarJugada(
+                        cartaJugada, colorElegido))
+                    {
+                        GuardarLog(
+                            numeroJugador,
+                            "Jugó " + textoCarta);
+
+                        NotificarJugada(numeroJugador);
+                    }
+                    else
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|JUGADA_INVALIDA");
+                    }
+
                     break;
 
                 case "ROBAR_CARTA":
-                    if (!partidaIniciada || partidaTerminada) return;
-                    if (turnoActual != numeroJugador) { EnviarJugador(numeroJugador, "ERROR|NO_ES_TU_TURNO"); return; }
-                    if (jugadorEsperandoDecision != -1) { EnviarJugador(numeroJugador, "ERROR|DECISION_ROBO_PENDIENTE"); return; }
-                    string robada = RobarCarta();
-                    if (robada == "") { EnviarJugador(numeroJugador, "ERROR|MAZO_VACIO"); return; }
-                    ObtenerMano(numeroJugador).Add(robada);
-                    Console.WriteLine("Jugador " + numeroJugador + " robó una carta.");
-                    GuardarLog(numeroJugador, "Robó una carta");
-                    jugadoresConUNO.Remove(numeroJugador);
-                    EnviarJugador(numeroJugador, "CARTA_ROBADA|" + robada);
-                    EnviarCantidades();
-                    if (JugadaValida(robada, ObtenerMano(numeroJugador)))
+
+                    if (!partidaIniciada ||
+                        partidaTerminada)
+                        return;
+
+                    if (logica.ObtenerTurnoActual() != numeroJugador)
                     {
-                        jugadorEsperandoDecision = numeroJugador;
-                        cartaRobadaPendiente = robada;
-                        EnviarJugador(numeroJugador, "DECIDIR_ROBO|" + robada);
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|NO_ES_TU_TURNO");
+                        return;
                     }
-                    else TerminarTurno();
+
+                    Carta robada = logica.RobarCarta();
+
+                    if (robada == null)
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|MAZO_VACIO");
+                        return;
+                    }
+
+                    string textoRobada = CartaATexto(robada);
+
+                    Console.WriteLine(
+                        "Jugador " + numeroJugador +
+                        " robó una carta.");
+
+                    GuardarLog(
+                        numeroJugador, "Robó una carta");
+
+                    EnviarJugador(
+                        numeroJugador,
+                        "CARTA_ROBADA|" + textoRobada);
+
+                    EnviarCantidades();
+
+                    if (logica.PuedeCartaJugadaRobada())
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "DECIDIR_ROBO|" + textoRobada);
+                    }
+                    else
+                    {
+                        logica.DecidirCartaRobada(
+                            false, ColorCarta.ESPECIAL);
+
+                        EnviarATodos(
+                            "TURNO|" +
+                            logica.ObtenerTurnoActual());
+                    }
+
                     break;
 
                 case "DECISION_ROBO":
-                    if (!partidaIniciada || partidaTerminada || jugadorEsperandoDecision != numeroJugador) return;
-                    if (partes.Length < 2) { EnviarJugador(numeroJugador, "ERROR|DECISION_INVALIDA"); return; }
+
+                    if (!partidaIniciada ||
+                        partidaTerminada)
+                        return;
+
+                    if (logica.ObtenerTurnoActual() != numeroJugador)
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|NO_ES_TU_TURNO");
+                        return;
+                    }
+
+                    if (partes.Length < 2)
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|DECISION_INVALIDA");
+                        return;
+                    }
+
                     if (partes[1] == "CONSERVAR")
                     {
-                        jugadorEsperandoDecision = -1;
-                        cartaRobadaPendiente = "";
-                        TerminarTurno();
+                        if (logica.DecidirCartaRobada(
+                            false, ColorCarta.ESPECIAL))
+                        {
+                            EnviarATodos(
+                                "TURNO|" +
+                                logica.ObtenerTurnoActual());
+                        }
+                        else
+                        {
+                            EnviarJugador(
+                                numeroJugador,
+                                "ERROR|DECISION_INVALIDA");
+                        }
                     }
                     else if (partes[1] == "JUGAR")
                     {
-                        string cartaPendiente = cartaRobadaPendiente;
-                        string elegido = partes.Length >= 3 ? partes[2] : "";
-                        if ((TipoDe(cartaPendiente) == "COMODIN" || TipoDe(cartaPendiente) == "MASCUATRO") && !ColorElegidoValido(elegido))
-                        { EnviarJugador(numeroJugador, "ERROR|COLOR_INVALIDO"); return; }
-                        jugadorEsperandoDecision = -1;
-                        cartaRobadaPendiente = "";
-                        JugarCarta(numeroJugador, cartaPendiente, elegido, true);
+                        ColorCarta colorRobada =
+                            ColorCarta.ESPECIAL;
+
+                        // El color elegido solo es necesario
+                        // cuando la carta robada es comodín.
+                        Carta cartaSuperior =
+                            logica.ObtenerCartaSuperior();
+
+                        // El mensaje del cliente conserva el
+                        // formato DECISION_ROBO|JUGAR|COLOR.
+                        string elegido =
+                            partes.Length >= 3 ? partes[2] : "";
+
+                        // La carta pendiente se encuentra dentro
+                        // de LogicaUNO. La lógica valida su tipo.
+                        if (!string.IsNullOrWhiteSpace(elegido))
+                        {
+                            if (!ObtenerColorElegido(
+                                elegido, out colorRobada))
+                            {
+                                EnviarJugador(
+                                    numeroJugador,
+                                    "ERROR|COLOR_INVALIDO");
+                                return;
+                            }
+                        }
+
+                        if (logica.DecidirCartaRobada(
+                            true, colorRobada))
+                        {
+                            GuardarLog(
+                                numeroJugador,
+                                "Jugó una carta robada");
+
+                            NotificarJugada(numeroJugador);
+                        }
+                        else
+                        {
+                            EnviarJugador(
+                                numeroJugador,
+                                "ERROR|JUGADA_INVALIDA");
+                        }
                     }
-                    else EnviarJugador(numeroJugador, "ERROR|DECISION_INVALIDA");
+                    else
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|DECISION_INVALIDA");
+                    }
+
                     break;
 
                 case "REINICIAR":
-                    if (clientes.Count == 3 && clientes.TrueForAll(c => c != null) &&
+
+                    if (clientes.Count == 3 &&
+                        clientes.TrueForAll(c => c != null) &&
                         nombres.TrueForAll(n => n != ""))
+                    {
                         IniciarPartida();
-                    else EnviarJugador(numeroJugador, "ERROR|FALTAN_JUGADORES");
+                    }
+                    else
+                    {
+                        EnviarJugador(
+                            numeroJugador,
+                            "ERROR|FALTAN_JUGADORES");
+                    }
+
                     break;
             }
         }
 
-        static void EnviarJugador(int numeroJugador, string mensaje)
+        static void EnviarJugador(
+            int numeroJugador, string mensaje)
         {
             Socket cliente = null;
+
             lock (bloqueo)
             {
-                if (numeroJugador >= 1 && numeroJugador <= clientes.Count)
+                if (numeroJugador >= 1 &&
+                    numeroJugador <= clientes.Count)
+                {
                     cliente = clientes[numeroJugador - 1];
+                }
             }
-            if (cliente != null) Enviar(cliente, mensaje);
+
+            if (cliente != null)
+                Enviar(cliente, mensaje);
         }
 
         static void Enviar(Socket cliente, string mensaje)
         {
-            if (cliente == null) return;
+            if (cliente == null)
+                return;
+
             try
             {
-                byte[] datos = Encoding.UTF8.GetBytes(mensaje + "\n");
+                byte[] datos = Encoding.UTF8.GetBytes(
+                    mensaje + "\n");
+
                 lock (cliente)
                 {
                     int enviados = 0;
+
                     while (enviados < datos.Length)
                     {
-                        int cantidad = cliente.Send(datos, enviados, datos.Length - enviados, SocketFlags.None);
-                        if (cantidad <= 0) break;
+                        int cantidad = cliente.Send(
+                            datos,
+                            enviados,
+                            datos.Length - enviados,
+                            SocketFlags.None);
+
+                        if (cantidad <= 0)
+                            break;
+
                         enviados += cantidad;
                     }
                 }
             }
-            catch (Exception) { Console.WriteLine("No se pudo enviar el mensaje."); }
+            catch (Exception)
+            {
+                Console.WriteLine(
+                    "No se pudo enviar el mensaje.");
+            }
         }
 
         static void EnviarATodos(string mensaje)
         {
             Socket[] conectados;
-            lock (bloqueo) conectados = clientes.ToArray();
+
+            lock (bloqueo)
+                conectados = clientes.ToArray();
+
             foreach (Socket cliente in conectados)
-                if (cliente != null) Enviar(cliente, mensaje);
+            {
+                if (cliente != null)
+                    Enviar(cliente, mensaje);
+            }
         }
     }
 }
