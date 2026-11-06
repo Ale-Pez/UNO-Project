@@ -67,7 +67,6 @@ namespace UNO
                         }));
                     }
                     catch (InvalidOperationException) { } // Ventana cerrándose.
-                    catch (ObjectDisposedException) { }
                 }
             };
 
