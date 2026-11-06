@@ -1,295 +1,228 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace UNO
 {
     internal class LogicaUNO
     {
-        // El servidor administra la baraja.
-        // Se conserva la variable por compatibilidad.
         public Baraja baraja;
-
         public List<Carta> cartas_en_pila;
-
         public Jugador jugador1;
         public Jugador jugador2;
         public Jugador jugador3;
-
         public int turno_actual = 1;
         public int sentido_juego = 1;
         public ColorCarta color_actual;
-
         private HashSet<int> jugadores_con_uno = new HashSet<int>();
+        private bool jugada_desde_mazo = false;
+        private LlamadaBD llamada;
 
-        // Datos recibidos del servidor
-        public int numero_jugador_local = 0;
-        public int[] cantidad_cartas = new int[3];
-
+        // El servidor es quien reparte, valida, avanza turnos y decide el ganador.
+        private int numero_jugador_local = 0;
+        private int[] cantidad_cartas = new int[3];
         public bool partida_terminada = false;
-        public int numero_ganador = 0;
+        public int numero_ganador = -1;
 
         public LogicaUNO(string nickname1, string nickname2, string nickname3)
         {
             ReiniciarRonda(nickname1, nickname2, nickname3);
         }
 
-        // Reiniciar solamente el estado local.
-        // El servidor se encarga de crear la partida.
-        public void ReiniciarRonda(string nickname1, string nickname2,
-                                   string nickname3, bool repartir = false)
+        public void ReiniciarRonda(string nickname1, string nickname2, string nickname3, bool repartir = false)
         {
-            this.baraja = null;
-
-            this.cartas_en_pila = new List<Carta>();
-
-            this.jugador1 = new Jugador(nickname1);
-            this.jugador2 = new Jugador(nickname2);
-            this.jugador3 = new Jugador(nickname3);
-
-            this.turno_actual = 1;
-            this.sentido_juego = 1;
-
-            this.color_actual = ColorCarta.ROJO;
-
-            this.jugadores_con_uno.Clear();
-
-            this.cantidad_cartas = new int[3];
-
-            this.partida_terminada = false;
-            this.numero_ganador = 0;
+            // No repartir aquí: las cartas llegarán en MANO_INICIAL.
+            baraja = null;
+            cartas_en_pila = new List<Carta>();
+            jugador1 = new Jugador(nickname1);
+            jugador2 = new Jugador(nickname2);
+            jugador3 = new Jugador(nickname3);
+            turno_actual = 1;
+            sentido_juego = 1;
+            color_actual = ColorCarta.ROJO;
+            jugadores_con_uno.Clear();
+            jugada_desde_mazo = false;
+            cantidad_cartas = new int[3];
+            partida_terminada = false;
+            numero_ganador = -1;
         }
 
-        // Número asignado por el servidor a esta computadora.
         public void AsignarJugadorLocal(int numeroJugador)
         {
             if (numeroJugador >= 1 && numeroJugador <= 3)
-                this.numero_jugador_local = numeroJugador;
+                numero_jugador_local = numeroJugador;
         }
 
-        // Obtener un jugador según su número.
         private Jugador ObtenerJugador(int numeroJugador)
         {
-            if (numeroJugador == 1)
-                return jugador1;
-
-            if (numeroJugador == 2)
-                return jugador2;
-
-            if (numeroJugador == 3)
-                return jugador3;
-
+            if (numeroJugador == 1) return jugador1;
+            if (numeroJugador == 2) return jugador2;
+            if (numeroJugador == 3) return jugador3;
             return null;
         }
 
-        // Recibir los nombres de los tres jugadores.
-        public void RecibirNombresServidor(string nombre1,string nombre2,string nombre3)
+        public void RecibirNombresServidor(string nickname1, string nickname2, string nickname3)
         {
-            this.jugador1 = new Jugador(nombre1);
-            this.jugador2 = new Jugador(nombre2);
-            this.jugador3 = new Jugador(nombre3);
+            // Los nombres se reciben del servidor, en orden de conexión.
+            jugador1 = new Jugador(nickname1);
+            jugador2 = new Jugador(nickname2);
+            jugador3 = new Jugador(nickname3);
         }
 
-        // Recibir las siete cartas iniciales.
-        // Solamente se guarda la mano de esta computadora.
-        public void RecibirManoServidor(int numeroJugador,List<Carta> cartas)
+        public void RecibirManoServidor(int numeroJugador, List<Carta> cartas)
         {
-            if (numeroJugador != numero_jugador_local)
-                return;
-
+            if (numeroJugador != numero_jugador_local) return;
             Jugador jugador = ObtenerJugador(numeroJugador);
-
-            if (jugador == null || cartas == null)
-                return;
+            if (jugador == null) return;
 
             jugador.GetMano().Clear();
-
             foreach (Carta carta in cartas)
-            {
-                jugador.RecibirCarta(carta);
-            }
+                if (carta != null) jugador.RecibirCarta(carta);
 
-            cantidad_cartas[numeroJugador - 1] =
-                jugador.ContarCartas();
+            cantidad_cartas[numeroJugador - 1] = jugador.ContarCartas();
         }
 
-        // Recibir la carta inicial de la mesa.
         public void RecibirCartaMesaServidor(Carta carta)
         {
-            if (carta == null)
-                return;
-
-            this.cartas_en_pila.Clear();
-            this.cartas_en_pila.Add(carta);
-
-            this.color_actual = carta.getColor();
+            if (carta == null) return;
+            cartas_en_pila.Clear();
+            cartas_en_pila.Add(carta);
+            color_actual = carta.getColor();
         }
 
-        // Actualizar el turno enviado por el servidor.
-        public void ActualizarTurnoServidor(int turno)
+        public void ActualizarTurnoServidor(int numeroJugador)
         {
-            if (turno >= 1 && turno <= 3)
-                this.turno_actual = turno;
+            if (numeroJugador >= 1 && numeroJugador <= 3)
+                turno_actual = numeroJugador;
         }
 
-        // Actualizar el sentido del juego.
         public void ActualizarSentidoServidor(int sentido)
         {
             if (sentido == 1 || sentido == -1)
-                this.sentido_juego = sentido;
+                sentido_juego = sentido;
         }
 
-        // Actualizar el color elegido en un comodín.
         public void ActualizarColorServidor(ColorCarta color)
         {
-            this.color_actual = color;
+            color_actual = color;
         }
 
-        // Actualizar la cantidad de cartas de cada jugador.
-        public void ActualizarCantidadCartasServidor(int numeroJugador,int cantidad)
+        public void ActualizarCantidadCartasServidor(int numeroJugador, int cantidad)
         {
-            if (numeroJugador < 1 || numeroJugador > 3)
-                return;
-
-            if (cantidad < 0)
-                return;
-
-            this.cantidad_cartas[numeroJugador - 1] = cantidad;
+            if (numeroJugador >= 1 && numeroJugador <= 3 && cantidad >= 0)
+                cantidad_cartas[numeroJugador - 1] = cantidad;
         }
 
         public int ContarCartasServidor(int numeroJugador)
         {
-            if (numeroJugador < 1 || numeroJugador > 3)
-                return 0;
-
-            return this.cantidad_cartas[numeroJugador - 1];
+            if (numeroJugador < 1 || numeroJugador > 3) return 0;
+            if (numeroJugador == numero_jugador_local)
+            {
+                Jugador jugador = ObtenerJugador(numeroJugador);
+                return jugador == null ? 0 : jugador.ContarCartas();
+            }
+            return cantidad_cartas[numeroJugador - 1];
         }
 
-        // Comprobación preliminar.
-        // La validación definitiva la realiza el servidor.
-        public bool JugadaValida(Carta carta_jugada,Carta carta_apilada)
+        public bool JugadaValida(Carta carta_jugada, Carta carta_apilada)
         {
-            if (carta_jugada == null || carta_apilada == null)
-                return false;
+            if (carta_jugada == null || carta_apilada == null) return false;
 
+            // El servidor comprobará las restricciones adicionales del +4.
             if (carta_jugada.getTipo() == TipoCarta.COMODIN ||
                 carta_jugada.getTipo() == TipoCarta.MASCUATRO)
                 return true;
 
-            if (carta_jugada.getColor() == this.color_actual)
-                return true;
+            if (carta_jugada.getColor() == color_actual) return true;
 
             if (carta_jugada.getTipo() == TipoCarta.NUMERO &&
                 carta_apilada.getTipo() == TipoCarta.NUMERO &&
                 carta_jugada.getNumero() == carta_apilada.getNumero())
                 return true;
 
-            if (carta_jugada.getTipo() == carta_apilada.getTipo() &&
-                carta_jugada.getTipo() != TipoCarta.NUMERO)
+            if (carta_jugada.getTipo() != TipoCarta.NUMERO &&
+                carta_jugada.getTipo() == carta_apilada.getTipo())
                 return true;
 
             return false;
         }
 
-        // El servidor confirmó que una carta fue jugada.
-        public void ConfirmarJugadaServidor(int numeroJugador,Carta carta_jugada)
+        public void ConfirmarJugadaServidor(int numeroJugador, Carta carta_jugada)
         {
-            if (numeroJugador < 1 || numeroJugador > 3 ||
-                carta_jugada == null)
-                return;
+            if (carta_jugada == null) return;
 
-            // Solo conocemos las cartas de nuestra propia mano.
             if (numeroJugador == numero_jugador_local)
             {
                 Jugador jugador = ObtenerJugador(numeroJugador);
-
-                Carta carta_encontrada = null;
-
-                foreach (Carta carta in jugador.GetMano())
+                if (jugador != null)
                 {
-                    if (carta.getColor() == carta_jugada.getColor() &&
-                        carta.getTipo() == carta_jugada.getTipo() &&
-                        carta.getNumero() == carta_jugada.getNumero())
+                    List<Carta> mano = jugador.GetMano();
+                    for (int i = 0; i < mano.Count; i++)
                     {
-                        carta_encontrada = carta;
-                        break;
+                        Carta carta = mano[i];
+                        if (carta.getColor() == carta_jugada.getColor() &&
+                            carta.getTipo() == carta_jugada.getTipo() &&
+                            carta.getNumero() == carta_jugada.getNumero())
+                        {
+                            mano.RemoveAt(i);
+                            break;
+                        }
                     }
+                    cantidad_cartas[numeroJugador - 1] = mano.Count;
                 }
-
-                if (carta_encontrada != null)
-                    jugador.JugarCarta(carta_encontrada);
             }
 
-            this.cartas_en_pila.Add(carta_jugada);
-
-            // El color definitivo se recibe en COLOR_ACTUAL.
-            if (carta_jugada.getTipo() != TipoCarta.COMODIN &&
-                carta_jugada.getTipo() != TipoCarta.MASCUATRO)
-            {
-                this.color_actual = carta_jugada.getColor();
-            }
+            cartas_en_pila.Add(carta_jugada);
+            // No se cambia color_actual aquí: el servidor envía COLOR_ACTUAL.
+            // No se avanza el turno aquí: el servidor envía TURNO.
         }
 
-        // Recibir una carta robada del servidor.
-        public void RecibirCartaRobadaServidor(int numeroJugador,Carta carta)
+        public void RecibirCartaRobadaServidor(int numeroJugador, Carta carta)
         {
-            if (numeroJugador != numero_jugador_local ||
-                carta == null)
-                return;
-
+            if (carta == null || numeroJugador != numero_jugador_local) return;
             Jugador jugador = ObtenerJugador(numeroJugador);
-
-            if (jugador == null)
-                return;
-
+            if (jugador == null) return;
             jugador.RecibirCarta(carta);
+            cantidad_cartas[numeroJugador - 1] = jugador.ContarCartas();
         }
 
-        // Registrar que un jugador anunció UNO.
         public void GritarUNO()
         {
-            GritarUNO(this.numero_jugador_local);
+            GritarUNO(turno_actual);
         }
 
         public void GritarUNO(int numeroJugador)
         {
             if (numeroJugador >= 1 && numeroJugador <= 3)
-                this.jugadores_con_uno.Add(numeroJugador);
+                jugadores_con_uno.Add(numeroJugador);
         }
 
         public void CancelarUNO(int numeroJugador)
         {
-            this.jugadores_con_uno.Remove(numeroJugador);
+            jugadores_con_uno.Remove(numeroJugador);
         }
 
-        // El servidor informa quién ganó.
         public void RecibirGanadorServidor(int numeroJugador)
         {
-            if (numeroJugador < 1 || numeroJugador > 3)
-                return;
-
-            this.numero_ganador = numeroJugador;
-            this.partida_terminada = true;
+            if (numeroJugador < 1 || numeroJugador > 3) return;
+            numero_ganador = numeroJugador;
+            partida_terminada = true;
         }
 
-
+        // Se conservan los métodos anteriores, pero las acciones reales
+        // ahora se ejecutan y confirman exclusivamente en ServidorUNO.
         public void RealizarJugada(Carta carta_jugada)
         {
-            // La jugada se ejecuta en ServidorUNO.
         }
 
         public void PasarTurno()
         {
-            // El servidor envía TURNO.
         }
 
-        public void RegistrarRoboCarta()
+        public void RegistrarRoboCarta(Carta carta_robada)
         {
-            // El servidor registra el robo.
         }
 
         public void AplicarEfectoCarta(Carta carta_jugada)
         {
-            // El servidor aplica los efectos especiales.
         }
     }
 }

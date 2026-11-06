@@ -1,6 +1,6 @@
-@echo off 
-cls 
-cd API 
-python -m pip install -r requirements.txt 
-start uvicorn conexionApi:app --reload 
+@echo off
+cls
+cd API
+python -m pip install -r requirements.txt
+start uvicorn conexionApi:app --host 0.0.0.0 --port 8000 --reload
 pause

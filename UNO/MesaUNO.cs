@@ -37,13 +37,16 @@ namespace UNO
             // Creación del Timer (para mensajes emergentes).
             this.timerAviso = new Timer();
             this.timerAviso.Interval = 2500;
+            this.timerAviso.Tick += timerAviso_Tick;
 
             //conexion al servidor
             cliente = new ClienteJuego();
 
+            // Cerrar la conexion TCP cuando se cierre el tablero.
+            this.FormClosed += MesaUNO_FormClosed;
+
             IniciarControles();
             ActualizarInterfaz();
-
 
 
             cliente.MensajeRecibido += (mensaje) =>
@@ -57,9 +60,17 @@ namespace UNO
                     }));
                 }
             };
-            var identificador = this.Handle;
 
+            var identificador = this.Handle;
             cliente.ConectarAlServidor("10.103.150.202", 11111, n1);
+        }
+
+        // MODIFICACION: liberar la conexion al cerrar MesaUNO.
+        private void MesaUNO_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            timerAviso.Stop();
+            if (cliente != null)
+                cliente.Desconectar();
         }
 
         private void IniciarControles()
@@ -129,7 +140,7 @@ namespace UNO
 
             ActualizarIndicadorColor();
             ActualizarTurnoEtiqueta();
-            this.boton_uno.Visible = this.jugador_pendiente_uno == cliente?.NumeroJugador && !this.partida_terminada;
+            this.boton_uno.Visible = this.partida_iniciada && this.jugador_pendiente_uno == cliente?.NumeroJugador && !this.partida_terminada;
         }
 
         private void DibujarMano(List<Carta> mano, FlowLayoutPanel panel, int numeroJugador)
@@ -213,6 +224,12 @@ namespace UNO
 
         private void ActualizarTurnoEtiqueta()
         {
+            if (!this.partida_iniciada)
+            {
+                this.lblTurno.Text = "Esperando jugadores...";
+                AcomodarControles();
+                return;
+            }
             string nombre;
 
             if (this.director.turno_actual == 1) nombre = this.director.jugador1.GetNombre();
@@ -244,12 +261,7 @@ namespace UNO
         // Evento que controla el juego cuando se hace click en una carta
         private void Carta_Click(object sender, EventArgs e)
         {
-            if (!partida_iniciada)
-            {
-                MessageBox.Show("Esperando a que se conecten los tres jugadores.");
-                return;
-            }
-
+            if (!this.partida_iniciada) { MessageBox.Show("Esperando a los tres jugadores."); return; }
             if (this.partida_terminada || this.accion_pendiente) return;
             PictureBox pic_box_click = sender as PictureBox;
             if (pic_box_click == null) return;
@@ -328,7 +340,7 @@ namespace UNO
 
         private void boton_uno_Click(object sender, EventArgs e)
         {
-            if (!this.partida_iniciada || this.jugador_pendiente_uno == -1 || this.partida_terminada) return; //solo se puede gritar UNO cuando la partida está iniciada y corresponde a ese jugador
+            if (!this.partida_iniciada || this.jugador_pendiente_uno == -1 || this.partida_terminada) return;
             if (this.jugador_pendiente_uno != cliente.NumeroJugador) return;
             cliente.EnviarAccion("UNO");
             // Esperar JUGADOR_UNO para ocultar el botón.
@@ -343,12 +355,7 @@ namespace UNO
 
         private void RobarMazoCarta(object sender, EventArgs e)
         {
-            if (!partida_iniciada)
-            {
-                MessageBox.Show("Esperando a que se conecten los tres jugadores.");
-                return;
-            }
-
+            if (!this.partida_iniciada) { MessageBox.Show("Esperando a los tres jugadores."); return; }
             if (this.partida_terminada || this.accion_pendiente) return;
             if (this.director.turno_actual != cliente.NumeroJugador)
             {
@@ -597,7 +604,7 @@ namespace UNO
             switch (partes[0])
             {
                 case "JUGADOR":
-                    this.director.AsignarJugadorLocal(cliente.NumeroJugador);
+                    this.director.AsignarJugadorLocal(int.Parse(partes[1]));
                     ActualizarInterfaz();
                     break;
 
@@ -611,22 +618,25 @@ namespace UNO
                     break;
 
                 case "REINICIO_CONFIRMADO":
+                    this.partida_iniciada = false;
                     this.timerAviso.Stop();
                     this.lblAvisoTemp.Text = "";
                     this.jugador_pendiente_uno = -1;
                     this.partida_terminada = false;
-                    this.partida_iniciada = false; //evita que se puedan jugar cartas mientras el servidor reparte una nueva mano
                     this.accion_pendiente = false;
                     this.esperando_reinicio = false;
-                    this.director.ReiniciarRonda(this.director.jugador1.GetNombre(),this.director.jugador2.GetNombre(),this.director.jugador3.GetNombre());
+                    this.director.ReiniciarRonda(
+                        this.director.jugador1.GetNombre(),
+                        this.director.jugador2.GetNombre(),
+                        this.director.jugador3.GetNombre());
                     ActualizarInterfaz();
                     break;
 
                 case "MANO_INICIAL":
                     List<Carta> cartas = new List<Carta>();
-                    if (cliente.ManoInicial != null)
+                    if (partes.Length >= 2)
                     {
-                        foreach (string datos in cliente.ManoInicial)
+                        foreach (string datos in mensaje.Substring("MANO_INICIAL|".Length).Split(';'))
                             if (!string.IsNullOrWhiteSpace(datos)) cartas.Add(ConvertirCarta(datos));
                     }
                     this.director.RecibirManoServidor(cliente.NumeroJugador, cartas);
@@ -635,12 +645,12 @@ namespace UNO
                     break;
 
                 case "CARTA_MESA":
-                    this.director.RecibirCartaMesaServidor(ConvertirCarta(cliente.CartaMesa));
+                    this.director.RecibirCartaMesaServidor(ConvertirCarta(mensaje.Substring("CARTA_MESA|".Length)));
                     ActualizarInterfaz();
                     break;
 
                 case "TURNO":
-                    this.director.ActualizarTurnoServidor(cliente.TurnoActual);
+                    this.director.ActualizarTurnoServidor(int.Parse(partes[1]));
                     this.accion_pendiente = false;
                     ActualizarInterfaz();
                     break;
@@ -733,9 +743,17 @@ namespace UNO
                     break;
 
                 case "JUGADOR_DESCONECTADO":
+                    this.partida_iniciada = false;
                     this.partida_terminada = true;
                     this.accion_pendiente = false;
                     MessageBox.Show("Se desconectó un jugador. La partida se ha detenido.");
+                    break;
+
+                case "DESCONECTADO":
+                    this.partida_iniciada = false;
+                    this.partida_terminada = true;
+                    this.accion_pendiente = false;
+                    MessageBox.Show("Se perdió la conexión con el servidor.");
                     break;
 
                 case "SERVIDOR_LLENO":

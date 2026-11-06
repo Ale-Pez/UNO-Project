@@ -1,4 +1,5 @@
-﻿using MySqlConnector;
+﻿
+using MySqlConnector;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace UNO
         // Propiedad que lee Form2 para extraer el nombre ingresado
         public string UsuarioRegistrado { get; private set; }
 
-        // Cliente HTTP estatio para comunicarse  con la API
+        // Cliente HTTP para comunicarse con la API
         private static readonly HttpClient client = new HttpClient();
 
         public Registro()
@@ -36,66 +37,98 @@ namespace UNO
 
             if (string.IsNullOrEmpty(usuario))
             {
-                MessageBox.Show("Por favor, escribe un nombre.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Por favor, escribe un nombre.","Aviso",MessageBoxButtons.OK,MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
-                // Preparamos los datos en formato JSON para mandárselos a la API
+                // Preparar los datos en formato JSON
                 var datosJugador = new { nombre = usuario };
-                string jsonPayload = JsonConvert.SerializeObject(datosJugador);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                // Hacemos la petición POST a la API de FastAPI
-                string urlApi = "http://127.0.0.1:8000/jugadores/registrar";
-                HttpResponseMessage response = await client.PostAsync(urlApi, content);
+                string jsonPayload =
+                    JsonConvert.SerializeObject(datosJugador);
+
+                var content = new StringContent(
+                    jsonPayload,
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+                // MODIFICACION:
+                // Todas las computadoras usan la misma API
+                string urlApi =
+                    "http://10.103.150.202:8000/jugadores/registrar";
+
+                HttpResponseMessage response =
+                    await client.PostAsync(urlApi, content);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    string jsonRespuesta = await response.Content.ReadAsStringAsync();
+                    string jsonRespuesta =
+                        await response.Content.ReadAsStringAsync();
 
-                    // Deserializamos la respuesta de la API que nos regresa el ID y si es nuevo
-                    var resultadoApi = JsonConvert.DeserializeObject<RespuestaRegistroDto>(jsonRespuesta);
+                    var resultadoApi =
+                        JsonConvert.DeserializeObject<RespuestaRegistroDto>(
+                            jsonRespuesta
+                        );
+
+                    if (resultadoApi == null)
+                    {
+                        MessageBox.Show(
+                            "La API devolvió una respuesta inválida."
+                        );
+                        return;
+                    }
 
                     int idJugador = resultadoApi.id_jugador;
                     bool esNuevo = resultadoApi.es_nuevo;
 
                     if (idJugador != -1)
                     {
-                        // Mensaje personalizado según el estado del usuario
                         if (esNuevo)
                         {
-                            label5.Text = "Te registramos como nuevo usuario!";
-                            await Task.Delay(1000);
+                            label5.Text =
+                                "¡Te registramos como nuevo usuario!";
                         }
                         else
                         {
-                            label5.Text = "Bienvenido de nuevo!";
-                            await Task.Delay(1000);
+                            label5.Text =
+                                "¡Bienvenido de nuevo!";
                         }
 
-                        // Forzamos a que Windows dibuje el cambio en pantalla inmediatamente
                         label5.Refresh();
 
-                        // Guardamos el nombre y cerramos para continuar con el siguiente jugador
+                        await Task.Delay(1000);
+
                         UsuarioRegistrado = usuario;
+
                         this.DialogResult = DialogResult.OK;
                         this.Close();
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Error al conectar con la API de registro.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(
+                        "Error al conectar con la API de registro.",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("No se pudo conectar con la API: " + ex.Message, "Error de red", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "No se pudo conectar con la API: " + ex.Message,
+                    "Error de red",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
             }
         }
 
-        // clase para leer la respuesta JSON que nos mandar la API
+        // Clase para interpretar la respuesta JSON de la API
         public class RespuestaRegistroDto
         {
             public int id_jugador { get; set; }

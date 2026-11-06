@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -39,7 +40,16 @@ namespace UNO
             }
 
             // Abre el tablero con el jugador registrado
+            // Los nombres de los demás jugadores llegarán del servidor
             MesaUNO tableroJuego = new MesaUNO(nombreJugador1, "", "");
+
+            // MODIFICACIÓN:
+            // Cuando se cierre el tablero, vuelve a mostrar el menú
+            tableroJuego.FormClosed += (s, args) =>
+            {
+                this.Show();
+            };
+
             tableroJuego.Show();
 
             // Oculta el menú principal

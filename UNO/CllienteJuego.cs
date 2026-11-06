@@ -15,40 +15,54 @@ namespace UNO
         public string NombreJugador { get; private set; }
         public int NumeroJugador { get; private set; }
 
-        //datos de la partida recibidos del servidor
+        // Datos de la partida recibidos del servidor
         public string[] ManoInicial { get; private set; }
         public string CartaMesa { get; private set; }
         public int TurnoActual { get; private set; }
 
-        //evento para avisar a MesaUNO que llegaron datos
+        // Evento para avisar a MesaUNO que llegaron datos
         public event Action<string> MensajeRecibido;
 
         public void ConectarAlServidor(string ip, int puerto, string nombre)
         {
             NombreJugador = nombre;
 
-            IPAddress ipAddr = IPAddress.Parse(ip);
-            IPEndPoint remoteEndPoint = new IPEndPoint(ipAddr, puerto);
-
-            _socketCliente = new Socket(ipAddr.AddressFamily,SocketType.Stream,ProtocolType.Tcp);
-
             try
             {
+                IPAddress ipAddr = IPAddress.Parse(ip);
+
+                IPEndPoint remoteEndPoint =
+                    new IPEndPoint(ipAddr, puerto);
+
+                _socketCliente = new Socket(
+                    ipAddr.AddressFamily,
+                    SocketType.Stream,
+                    ProtocolType.Tcp
+                );
+
                 _socketCliente.Connect(remoteEndPoint);
 
                 Console.WriteLine(
                     $"[CONECTADO] Conectado como {NombreJugador}"
                 );
 
-                EnviarAccion($"CONECTAR|{NombreJugador}");
-
+                // MODIFICACIÓN:
+                // Iniciar primero el hilo que recibe los mensajes
                 Thread hiloEscucha = new Thread(EscucharAlServidor);
                 hiloEscucha.IsBackground = true;
                 hiloEscucha.Start();
+
+                // Identificarse ante el servidor
+                EnviarAccion($"CONECTAR|{NombreJugador}");
             }
             catch (Exception e)
             {
-                Console.WriteLine($"No se pudo conectar al servidor: {e.Message}");
+                Console.WriteLine(
+                    $"No se pudo conectar al servidor: {e.Message}"
+                );
+
+                // Avisar a MesaUNO del error de conexión
+                MensajeRecibido?.Invoke("DESCONECTADO");
             }
         }
 
@@ -56,9 +70,12 @@ namespace UNO
         {
             try
             {
-                if (_socketCliente != null && _socketCliente.Connected)
+                if (_socketCliente != null &&
+                    _socketCliente.Connected)
                 {
-                    byte[] datos = Encoding.UTF8.GetBytes(mensajeProtocolo + "\n");
+                    byte[] datos = Encoding.UTF8.GetBytes(
+                        mensajeProtocolo + "\n"
+                    );
 
                     int enviados = 0;
 
@@ -74,11 +91,19 @@ namespace UNO
                             );
 
                             if (cantidad <= 0)
-                                break;
+                                throw new SocketException();
 
                             enviados += cantidad;
                         }
                     }
+                }
+                else
+                {
+                    Console.WriteLine(
+                        "No hay conexión con el servidor."
+                    );
+
+                    MensajeRecibido?.Invoke("DESCONECTADO");
                 }
             }
             catch (Exception e)
@@ -86,39 +111,52 @@ namespace UNO
                 Console.WriteLine(
                     $"Error al enviar datos: {e.Message}"
                 );
+
+                MensajeRecibido?.Invoke("DESCONECTADO");
             }
         }
 
         private void EscucharAlServidor()
         {
+            // Acumular los datos recibidos por TCP
             StringBuilder pendiente = new StringBuilder();
 
             try
             {
                 while (true)
                 {
-                    int bytesRecibidos = _socketCliente.Receive(_bufferRecibo);
+                    int bytesRecibidos =
+                        _socketCliente.Receive(_bufferRecibo);
 
+                    // El servidor cerró la conexión
                     if (bytesRecibidos == 0)
                         break;
 
                     pendiente.Append(
                         Encoding.UTF8.GetString(
-                            _bufferRecibo, 0, bytesRecibidos
+                            _bufferRecibo,
+                            0,
+                            bytesRecibidos
                         )
                     );
 
                     string contenido = pendiente.ToString();
                     int posicion;
 
+                    // MODIFICACIÓN:
+                    // Procesar cada mensaje completo separado por \n
                     while ((posicion = contenido.IndexOf('\n')) >= 0)
                     {
-                        string mensaje = contenido.Substring(0, posicion)
+                        string mensaje = contenido
+                            .Substring(0, posicion)
                             .TrimEnd('\r');
 
                         contenido = contenido.Substring(posicion + 1);
 
-                        ProcesarOrdenDelServidor(mensaje);
+                        if (!string.IsNullOrWhiteSpace(mensaje))
+                        {
+                            ProcesarOrdenDelServidor(mensaje);
+                        }
                     }
 
                     pendiente.Clear();
@@ -128,14 +166,26 @@ namespace UNO
             catch (SocketException)
             {
                 Console.WriteLine(
-                    "[ERROR] Se perdio la conexion con el servidor."
+                    "[ERROR] Se perdió la conexión con el servidor."
                 );
             }
             catch (ObjectDisposedException)
             {
                 Console.WriteLine(
-                    "La conexion con el servidor se cerro."
+                    "La conexión con el servidor se cerró."
                 );
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(
+                    $"Error al recibir datos: {e.Message}"
+                );
+            }
+            finally
+            {
+                // MODIFICACIÓN:
+                // Informar a MesaUNO cuando se pierde la conexión
+                MensajeRecibido?.Invoke("DESCONECTADO");
             }
         }
 
@@ -144,101 +194,247 @@ namespace UNO
             string[] partes = mensajeRecibido.Split('|');
             string comando = partes[0];
 
-            switch (comando)
+            try
             {
-                case "JUGADOR":
+                switch (comando)
+                {
+                    case "JUGADOR":
 
-                    //guardar el numero asignado por el servidor
-                    NumeroJugador = int.Parse(partes[1]);
+                        if (partes.Length >= 2)
+                        {
+                            NumeroJugador = int.Parse(partes[1]);
 
-                    Console.WriteLine(
-                        $"Soy el jugador {NumeroJugador}"
-                    );
-                    break;
+                            Console.WriteLine(
+                                $"Soy el jugador {NumeroJugador}"
+                            );
+                        }
+                        break;
 
+                    case "JUGADOR_CONECTADO":
 
-                case "JUGADOR_CONECTADO":
+                        if (partes.Length >= 3)
+                        {
+                            Console.WriteLine(
+                                $"Se conectó el jugador {partes[1]}: {partes[2]}"
+                            );
+                        }
+                        break;
 
-                    Console.WriteLine(
-                        $"Se conectó el jugador {partes[1]}: {partes[2]}"
-                    );
-                    break;
+                    case "JUGADORES":
 
+                        Console.WriteLine(
+                            "Se recibieron los nombres de los jugadores."
+                        );
+                        break;
 
-                //recibir las siete cartas iniciales
-                case "MANO_INICIAL":
+                    case "REINICIO_CONFIRMADO":
 
-                    string cartas = mensajeRecibido.Substring(
-                        "MANO_INICIAL|".Length
-                    );
+                        // Limpiar los datos de la ronda anterior
+                        ManoInicial = null;
+                        CartaMesa = null;
+                        TurnoActual = 0;
 
-                    ManoInicial = cartas.Split(';');
+                        Console.WriteLine(
+                            "El servidor reinició la partida."
+                        );
+                        break;
 
-                    Console.WriteLine("Mis cartas iniciales:");
+                    case "MANO_INICIAL":
 
-                    foreach (string carta in ManoInicial)
-                    {
-                        Console.WriteLine(carta);
-                    }
-                    break;
+                        if (mensajeRecibido.StartsWith("MANO_INICIAL|"))
+                        {
+                            string cartas = mensajeRecibido.Substring(
+                                "MANO_INICIAL|".Length
+                            );
 
+                            ManoInicial = cartas.Split(';');
 
-                //recibir la carta de la mesa
-                case "CARTA_MESA":
+                            Console.WriteLine("Mis cartas iniciales:");
 
-                    CartaMesa = mensajeRecibido.Substring(
-                        "CARTA_MESA|".Length
-                    );
+                            foreach (string carta in ManoInicial)
+                            {
+                                if (!string.IsNullOrWhiteSpace(carta))
+                                    Console.WriteLine(carta);
+                            }
+                        }
+                        break;
 
-                    Console.WriteLine(
-                        $"Carta de la mesa: {CartaMesa}"
-                    );
-                    break;
+                    case "CARTA_MESA":
 
+                        if (mensajeRecibido.StartsWith("CARTA_MESA|"))
+                        {
+                            CartaMesa = mensajeRecibido.Substring(
+                                "CARTA_MESA|".Length
+                            );
 
-                //recibir el turno actual
-                case "TURNO":
+                            Console.WriteLine(
+                                $"Carta de la mesa: {CartaMesa}"
+                            );
+                        }
+                        break;
 
-                    TurnoActual = int.Parse(partes[1]);
+                    case "TURNO":
 
-                    Console.WriteLine($"Turno del jugador {TurnoActual}");
-                    break;
+                        if (partes.Length >= 2)
+                        {
+                            TurnoActual = int.Parse(partes[1]);
 
+                            Console.WriteLine(
+                                $"Turno del jugador {TurnoActual}"
+                            );
+                        }
+                        break;
 
-                case "ACCION_CARTA":
+                    case "CARTA_JUGADA":
 
-                    Console.WriteLine($"El jugador {partes[1]} solicito jugar una carta.");
-                    break;
+                        if (partes.Length >= 5)
+                        {
+                            Console.WriteLine(
+                                $"El jugador {partes[1]} jugó " +
+                                $"{partes[2]}|{partes[3]}|{partes[4]}"
+                            );
+                        }
+                        break;
 
+                    case "CARTA_ROBADA":
 
-                case "ACCION_ROBAR":
+                        Console.WriteLine(
+                            "Se recibió una carta del servidor."
+                        );
+                        break;
 
-                    Console.WriteLine($"El jugador {partes[1]} solicito robar una carta.");
-                    break;
+                    case "DECIDIR_ROBO":
 
+                        Console.WriteLine(
+                            "El servidor solicita decidir si jugar " +
+                            "o conservar la carta robada."
+                        );
+                        break;
 
-                case "JUGADOR_UNO":
+                    case "COLOR_ACTUAL":
 
-                    Console.WriteLine($"El jugador {partes[1]} grito UNO.");
-                    break;
+                        if (partes.Length >= 2)
+                        {
+                            Console.WriteLine(
+                                $"Color actual: {partes[1]}"
+                            );
+                        }
+                        break;
 
+                    case "SENTIDO":
 
-                case "SERVIDOR_LLENO":
+                        if (partes.Length >= 2)
+                        {
+                            Console.WriteLine(
+                                $"Sentido del juego: {partes[1]}"
+                            );
+                        }
+                        break;
 
-                   Console.WriteLine("El servidor ya tiene tres jugadores.");
-                    break;
+                    case "CANTIDADES":
 
+                        if (partes.Length >= 4)
+                        {
+                            Console.WriteLine(
+                                $"Cartas restantes: " +
+                                $"{partes[1]}, {partes[2]}, {partes[3]}"
+                            );
+                        }
+                        break;
 
-                //recibir errores del servidor
-                case "ERROR":
+                    case "UNO_PENDIENTE":
 
-                    Console.WriteLine(
-                        $"Error del servidor: {mensajeRecibido}");
-                    break;
+                        Console.WriteLine(
+                            "Un jugador debe anunciar UNO."
+                        );
+                        break;
+
+                    case "JUGADOR_UNO":
+
+                        if (partes.Length >= 2)
+                        {
+                            Console.WriteLine(
+                                $"El jugador {partes[1]} gritó UNO."
+                            );
+                        }
+                        break;
+
+                    case "CASTIGO_UNO":
+
+                        if (partes.Length >= 2)
+                        {
+                            Console.WriteLine(
+                                $"El jugador {partes[1]} recibió " +
+                                "un castigo por no decir UNO."
+                            );
+                        }
+                        break;
+
+                    case "GANADOR":
+
+                        if (partes.Length >= 2)
+                        {
+                            Console.WriteLine(
+                                $"Ganó el jugador {partes[1]}"
+                            );
+                        }
+                        break;
+
+                    case "JUGADOR_DESCONECTADO":
+
+                        Console.WriteLine(
+                            "Se desconectó un jugador."
+                        );
+                        break;
+
+                    case "SERVIDOR_LLENO":
+
+                        Console.WriteLine(
+                            "El servidor ya tiene tres jugadores."
+                        );
+                        break;
+
+                    case "ERROR":
+
+                        Console.WriteLine(
+                            $"Error del servidor: {mensajeRecibido}"
+                        );
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(
+                    $"Error al interpretar mensaje: {e.Message}"
+                );
+
+                return;
             }
 
-            //avisar a MesaUNO que se recibio un mensaje
+            // Avisar a MesaUNO de cada mensaje recibido
             MensajeRecibido?.Invoke(mensajeRecibido);
+        }
+
+        // MODIFICACIÓN:
+        // Cerrar la conexión al terminar de utilizar el cliente
+        public void Desconectar()
+        {
+            try
+            {
+                if (_socketCliente != null)
+                {
+                    _socketCliente.Shutdown(SocketShutdown.Both);
+                    _socketCliente.Close();
+                }
+            }
+            catch (SocketException)
+            {
+                // La conexión ya estaba cerrada
+            }
+            catch (ObjectDisposedException)
+            {
+                // El socket ya fue liberado
+            }
         }
     }
 }
