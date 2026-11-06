@@ -21,6 +21,11 @@ namespace UNO
         private bool accion_pendiente = false; // Evita enviar acciones repetidas
         private bool esperando_reinicio = false;
 
+        // Evita reconstruir controles cuando el estado visual no cambia.
+        private string[] manos_dibujadas = new string[3];
+        private string carta_mesa_dibujada = null;
+        private ColorCarta? color_dibujado = null;
+
 
         public MesaUNO(string n1, string n2, string n3)
         {
@@ -62,7 +67,7 @@ namespace UNO
             };
 
             var identificador = this.Handle;
-            cliente.ConectarAlServidor("10.103.150.202", 11111, n1);
+            cliente.ConectarAlServidor("10.103.150.34", 11111, n1);
         }
 
         // MODIFICACION: liberar la conexion al cerrar MesaUNO.
@@ -124,18 +129,26 @@ namespace UNO
 
             if (this.director.cartas_en_pila.Count > 0)
             {
-                PictureBox sprite = ObtenerSpriteCarta(this.director.cartas_en_pila.Last());
-                Image imagen = sprite.Image;
-                sprite.Image = null;
-                sprite.Dispose();
+                Carta carta = this.director.cartas_en_pila.Last();
+                string clave = carta.getColor() + "|" + carta.getTipo() + "|" + carta.getNumero();
 
-                Image anterior = this.pila_cartas.Image;
-                this.pila_cartas.Image = imagen;
-                if (anterior != null) anterior.Dispose();
+                // Solo cambia la imagen si cambió la carta visible.
+                if (carta_mesa_dibujada != clave)
+                {
+                    PictureBox sprite = ObtenerSpriteCarta(carta);
+                    Image imagen = sprite.Image;
+                    sprite.Image = null;
+                    sprite.Dispose();
 
-                this.pila_cartas.SizeMode = PictureBoxSizeMode.StretchImage;
-                this.pila_cartas.Width = 70;
-                this.pila_cartas.Height = 100;
+                    Image anterior = this.pila_cartas.Image;
+                    this.pila_cartas.Image = imagen;
+                    if (anterior != null) anterior.Dispose();
+
+                    this.pila_cartas.SizeMode = PictureBoxSizeMode.StretchImage;
+                    this.pila_cartas.Width = 70;
+                    this.pila_cartas.Height = 100;
+                    carta_mesa_dibujada = clave;
+                }
             }
 
             ActualizarIndicadorColor();
@@ -145,35 +158,57 @@ namespace UNO
 
         private void DibujarMano(List<Carta> mano, FlowLayoutPanel panel, int numeroJugador)
         {
-            LimpiarPanelCartas(panel);
-
             bool esMiMano = cliente != null && numeroJugador == cliente.NumeroJugador;
             int cantidad = esMiMano ? mano.Count : this.director.ContarCartasServidor(numeroJugador);
 
-            for (int i = 0; i < cantidad; i++)
-            {
-                PictureBox sprite = esMiMano ? ObtenerSpriteCarta(mano[i]) : new PictureBox();
-                if (!esMiMano) sprite.Image = (Image)Properties.Resources.back_uno.Clone();
-                sprite.Tag = esMiMano ? (object)mano[i] : null;
-                sprite.SizeMode = PictureBoxSizeMode.StretchImage;
+            // La clave incluye el contenido y el orden de las cartas propias.
+            // De los demás jugadores solo conocemos la cantidad.
+            string clave = esMiMano ? "PROPIA|" : "REVERSO|";
+            if (esMiMano)
+                foreach (Carta carta in mano)
+                    clave += carta.getColor() + "|" + carta.getTipo() + "|" + carta.getNumero() + ";";
+            else
+                clave += cantidad;
 
-                if (numeroJugador == 1)
+            if (manos_dibujadas[numeroJugador - 1] == clave)
+                return;
+
+            // Evita que el panel muestre los controles mientras se reconstruyen.
+            panel.SuspendLayout();
+            try
+            {
+                LimpiarPanelCartas(panel);
+
+                for (int i = 0; i < cantidad; i++)
                 {
-                    sprite.Width = 70;
-                    sprite.Height = 100;
-                }
-                else
-                {
-                    sprite.Width = 100;
-                    sprite.Height = 70;
-                    if (sprite.Image != null)
+                    PictureBox sprite = esMiMano ? ObtenerSpriteCarta(mano[i]) : new PictureBox();
+                    if (!esMiMano) sprite.Image = (Image)Properties.Resources.back_uno.Clone();
+                    sprite.Tag = esMiMano ? (object)mano[i] : null;
+                    sprite.SizeMode = PictureBoxSizeMode.StretchImage;
+
+                    if (numeroJugador == 1)
                     {
-                        RotateFlipType rotacion = numeroJugador == 2 ? RotateFlipType.Rotate270FlipNone : RotateFlipType.Rotate90FlipNone;
-                        sprite.Image.RotateFlip(rotacion);
+                        sprite.Width = 70;
+                        sprite.Height = 100;
                     }
+                    else
+                    {
+                        sprite.Width = 100;
+                        sprite.Height = 70;
+                        if (sprite.Image != null)
+                        {
+                            RotateFlipType rotacion = numeroJugador == 2 ? RotateFlipType.Rotate270FlipNone : RotateFlipType.Rotate90FlipNone;
+                            sprite.Image.RotateFlip(rotacion);
+                        }
+                    }
+                    if (esMiMano) sprite.Click += Carta_Click;
+                    panel.Controls.Add(sprite);
                 }
-                if (esMiMano) sprite.Click += Carta_Click;
-                panel.Controls.Add(sprite);
+                manos_dibujadas[numeroJugador - 1] = clave;
+            }
+            finally
+            {
+                panel.ResumeLayout();
             }
         }
 
@@ -195,6 +230,8 @@ namespace UNO
 
         private void ActualizarIndicadorColor()
         {
+            if (color_dibujado == this.director.color_actual) return;
+
             Image nuevo_icono = null;
 
             switch (this.director.color_actual)
@@ -217,7 +254,12 @@ namespace UNO
             }
 
             if (nuevo_icono != null)
+            {
+                Image anterior = icono_color_juego.Image;
                 icono_color_juego.Image = (Image)nuevo_icono.Clone();
+                if (anterior != null) anterior.Dispose();
+                color_dibujado = this.director.color_actual;
+            }
 
             icono_color_juego.SizeMode = PictureBoxSizeMode.StretchImage;
         }
@@ -625,6 +667,9 @@ namespace UNO
                     this.partida_terminada = false;
                     this.accion_pendiente = false;
                     this.esperando_reinicio = false;
+                    manos_dibujadas = new string[3];
+                    carta_mesa_dibujada = null;
+                    color_dibujado = null;
                     this.director.ReiniciarRonda(
                         this.director.jugador1.GetNombre(),
                         this.director.jugador2.GetNombre(),

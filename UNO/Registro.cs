@@ -58,7 +58,7 @@ namespace UNO
                 // MODIFICACION:
                 // Todas las computadoras usan la misma API
                 string urlApi =
-                    "http://10.103.150.202:8000/jugadores/registrar";
+                    "http://10.103.150.34:8000/jugadores/registrar";
 
                 HttpResponseMessage response =
                     await client.PostAsync(urlApi, content);
