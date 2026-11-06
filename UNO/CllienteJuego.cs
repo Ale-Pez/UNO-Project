@@ -11,6 +11,7 @@ namespace UNO
     {
         private Socket _socketCliente;
         private byte[] _bufferRecibo = new byte[1024];
+        private bool desconexionVoluntaria = false;
 
         public string NombreJugador { get; private set; }
         public int NumeroJugador { get; private set; }
@@ -26,6 +27,7 @@ namespace UNO
         public void ConectarAlServidor(string ip, int puerto, string nombre)
         {
             NombreJugador = nombre;
+            desconexionVoluntaria = false;
 
             try
             {
@@ -163,11 +165,10 @@ namespace UNO
                     pendiente.Append(contenido);
                 }
             }
-            catch (SocketException)
+            catch (SocketException e)
             {
-                Console.WriteLine(
-                    "[ERROR] Se perdió la conexión con el servidor."
-                );
+                if (!desconexionVoluntaria)
+                    Console.WriteLine("[ERROR] Socket: " + e.ToString());
             }
             catch (ObjectDisposedException)
             {
@@ -177,15 +178,14 @@ namespace UNO
             }
             catch (Exception e)
             {
-                Console.WriteLine(
-                    $"Error al recibir datos: {e.Message}"
-                );
+                Console.WriteLine("Error al recibir datos: " + e.ToString());
             }
             finally
             {
                 // MODIFICACIÓN:
                 // Informar a MesaUNO cuando se pierde la conexión
-                MensajeRecibido?.Invoke("DESCONECTADO");
+                if (!desconexionVoluntaria)
+                    MensajeRecibido?.Invoke("DESCONECTADO");
             }
         }
 
@@ -411,14 +411,22 @@ namespace UNO
                 return;
             }
 
-            // Avisar a MesaUNO de cada mensaje recibido
-            MensajeRecibido?.Invoke(mensajeRecibido);
+            // Una excepción en un suscriptor no debe detener el hilo TCP.
+            try
+            {
+                MensajeRecibido?.Invoke(mensajeRecibido);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error al notificar a MesaUNO: " + e.ToString());
+            }
         }
 
         // MODIFICACIÓN:
         // Cerrar la conexión al terminar de utilizar el cliente
         public void Desconectar()
         {
+            desconexionVoluntaria = true;
             try
             {
                 if (_socketCliente != null)

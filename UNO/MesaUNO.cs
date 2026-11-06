@@ -58,11 +58,16 @@ namespace UNO
             {
                 if (this.IsHandleCreated && !this.IsDisposed)
                 {
-                    this.BeginInvoke(new Action(() =>
+                    try
                     {
-                        if (!this.IsDisposed)
-                            ProcesarMensajeServidor(mensaje);
-                    }));
+                        this.BeginInvoke(new Action(() =>
+                        {
+                            if (!this.IsDisposed)
+                                ProcesarMensajeServidor(mensaje);
+                        }));
+                    }
+                    catch (InvalidOperationException) { } // Ventana cerrándose.
+                    catch (ObjectDisposedException) { }
                 }
             };
 
@@ -674,7 +679,7 @@ namespace UNO
                         this.director.jugador1.GetNombre(),
                         this.director.jugador2.GetNombre(),
                         this.director.jugador3.GetNombre());
-                    ActualizarInterfaz();
+                    // Esperar los datos de la nueva ronda antes de dibujar.
                     break;
 
                 case "MANO_INICIAL":
