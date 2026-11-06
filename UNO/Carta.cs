@@ -34,6 +34,50 @@ namespace UNO
             this.numero = -1;
         }
 
+        public Carta(string color, string tipo)
+        {
+            switch (color)
+            {
+                case "ROJO":
+                    this.color = ColorCarta.ROJO;
+                    break;
+                case "AMARILLO":
+                    this.color = ColorCarta.AMARILLO;
+                    break;
+                case "AZUL":
+                    this.color = ColorCarta.AZUL;
+                    break;
+                case "VERDE":
+                    this.color = ColorCarta.VERDE;
+                    break;
+                default:
+                    this.color = ColorCarta.ESPECIAL;
+                    break;
+            }
+
+            switch (tipo)
+            {
+                case "BLOQUEA":
+                    this.tipo = TipoCarta.BLOQUEA;
+                    break;
+                case "COMODIN":
+                    this.tipo = TipoCarta.COMODIN;
+                    break;
+                case "MASCUATRO":
+                    this.tipo = TipoCarta.MASCUATRO;
+                    break;
+                case "MASDOS":
+                    this.tipo = TipoCarta.MASDOS;
+                    break;
+                case "REVERSA":
+                    this.tipo = TipoCarta.REVERSA;
+                    break;
+                default:
+                    this.tipo = TipoCarta.NUMERO;
+                    break;
+            }
+        }
+
         public Carta(ColorCarta color, TipoCarta tipo, int numero)
         {
             if (numero < 0 || numero > 9)
@@ -90,6 +134,11 @@ namespace UNO
                 throw new ArgumentException("Una carta numérica debe tener un valor entre 0 y 9.\n");
             }
             this.numero = numero;
+        }
+
+        public override string ToString()
+        {
+            return this.color.ToString() + "|" + this.tipo.ToString() + "|" + this.numero.ToString();
         }
     }
 
