@@ -207,9 +207,7 @@ namespace ServidorUNO
             if (tipo == "COMODIN") return true;
             if (tipo == "MASCUATRO")
             {
-                // Regla del +4: no puede tener otra carta del color activo.
-                foreach (string otra in mano)
-                    if (ColorDe(otra) == colorActual) return false;
+              
                 return true;
             }
             if (ColorDe(carta) == colorActual) return true;
