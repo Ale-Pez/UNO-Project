@@ -88,6 +88,12 @@
     <Compile Include="Baraja.cs" />
     <Compile Include="Carta.cs" />
     <Compile Include="CllienteJuego.cs" />
+    <Compile Include="HistorialPartidas.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="HistorialPartidas.Designer.cs">
+      <DependentUpon>HistorialPartidas.cs</DependentUpon>
+    </Compile>
     <Compile Include="LlamadaBD.cs" />
     <Compile Include="LogicaUNO.cs" />
     <Compile Include="MesaUNO.cs">
@@ -117,6 +123,9 @@
     <Compile Include="Registro.Designer.cs">
       <DependentUpon>Registro.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="HistorialPartidas.resx">
+      <DependentUpon>HistorialPartidas.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MesaUNO.resx">
       <DependentUpon>MesaUNO.cs</DependentUpon>
     </EmbeddedResource>

@@ -14,7 +14,7 @@ namespace UNO
 
         // MODIFICACIÓN:
         // Dirección de la única API para las tres computadoras
-        private static readonly string url_api = "http://10.103.150.34:8000";
+        private static readonly string url_api = "http://10.103.151.232:8000";
 
         private int id_partida_actual;
         private int id_jugador1;

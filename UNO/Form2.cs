@@ -60,5 +60,11 @@ namespace UNO
         {
 
         }
+
+        private void boton_historial_Click(object sender, EventArgs e)
+        {
+            HistorialPartidas ventanaResumen = new HistorialPartidas("", "");
+            DialogResult resultado = ventanaResumen.ShowDialog(this);
+        }
     }
 }

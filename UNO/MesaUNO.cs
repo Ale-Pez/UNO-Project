@@ -71,7 +71,7 @@ namespace UNO
             };
 
             var identificador = this.Handle;
-            cliente.ConectarAlServidor("10.103.150.34", 11111, n1);
+            cliente.ConectarAlServidor("10.103.151.232", 11111, n1);
         }
 
         // MODIFICACION: liberar la conexion al cerrar MesaUNO.
