@@ -12,7 +12,7 @@ def obtener_conexion():
         port=3306,
         database="juego_uno",
         user="root",
-        password="ThisIsMyJaronaSQL"
+        password="M1234"
     )
 
 

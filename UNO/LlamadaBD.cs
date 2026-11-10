@@ -11,10 +11,7 @@ namespace UNO
     internal class LlamadaBD
     {
         private static readonly HttpClient cliente_http_api = new HttpClient();
-
-        // MODIFICACIÓN:
-        // Dirección de la única API para las tres computadoras
-        private static readonly string url_api = "http://10.103.151.232:8000";
+        private static readonly string url_api = "http://10.103.150.138:8000";
 
         private int id_partida_actual;
         private int id_jugador1;
@@ -27,26 +24,24 @@ namespace UNO
 
             this.id_partida_actual = -1;
 
-            // Registrar o reconocer a los tres jugadores
+            //registrar o reconocer a los tres jugadores
             this.id_jugador1 = RegistrarJugadorApi(nickname1, out nuevo1);
             this.id_jugador2 = RegistrarJugadorApi(nickname2, out nuevo2);
             this.id_jugador3 = RegistrarJugadorApi(nickname3, out nuevo3);
 
-            // MODIFICACIÓN:
-            // La partida no se crea automáticamente aquí.
-            // Su ID debe ser compartido por el servidor UNO.
+            // MODIFICACIO:
+            // La partida no se crea automaticamente aqui su ID debe ser compartido por el servidor UNO.
         }
 
-        // MODIFICACIÓN:
-        // Guardar el ID de la partida creada para los tres jugadores
+        
+        //guarda el ID de la partida creada para los tres jugadores
         public void AsignarPartida(int id_partida)
         {
             if (id_partida > 0)
                 this.id_partida_actual = id_partida;
         }
 
-        // Crear una nueva partida mediante la API
-        // Este método debe ejecutarse una sola vez por partida
+        //crear una nueva partida mediante la API
         public async Task CrearPartidaApi()
         {
             this.id_partida_actual = -1;
@@ -80,14 +75,14 @@ namespace UNO
             }
         }
 
-        // MODIFICACIÓN:
-        // Consultar el ID para compartirlo con los clientes
+        
+        //consultar el ID para compartirlo con los clientes
         public int ObtenerIdPartida()
         {
             return this.id_partida_actual;
         }
 
-        // Registrar un jugador o recuperar su ID
+        //registrar un jugador o recuperar su ID
         private int RegistrarJugadorApi(string nombre, out bool es_nuevo)
         {
             es_nuevo = false;
@@ -135,7 +130,7 @@ namespace UNO
             return -1;
         }
 
-        // Actualizar las victorias y derrotas de un jugador
+        //actualizar las victorias y derrotas de un jugador
         public async Task ActualizarHistorialApi(int numero_jugador, bool gano)
         {
             try
@@ -178,7 +173,7 @@ namespace UNO
             }
         }
 
-        // Finalizar la partida y guardar al ganador
+        //finalizar la partida y guardar al ganador
         public async Task FinalizarPartidaApi(string ganador)
         {
             try
@@ -215,7 +210,7 @@ namespace UNO
             }
         }
 
-        // Guardar los movimientos realizados durante la partida
+        //guardar los movimientos realizados durante la partida
         public async Task GuardarLogApi(int numero_jugador, string movimiento)
         {
             try
@@ -264,7 +259,7 @@ namespace UNO
             }
         }
 
-        // Clase para interpretar la respuesta JSON de la API
+        //clase para interpretar la respuesta JSON de la API
         public class FormatoPartida
         {
             public int id_partida { get; set; }

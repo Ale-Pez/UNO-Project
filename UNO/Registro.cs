@@ -16,17 +16,17 @@ namespace UNO
 {
     public partial class Registro : Form
     {
-        // Propiedad que lee Form2 para extraer el nombre ingresado
+        //propiedad que lee Form2 para extraer el nombre ingresado
         public string UsuarioRegistrado { get; private set; }
 
-        // Cliente HTTP para comunicarse con la API
+        //cliente HTTP para comunicarse con la API
         private static readonly HttpClient client = new HttpClient();
 
         public Registro()
         {
             InitializeComponent();
 
-            // Ventana fija de registro
+            //ventana fija de registro
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
         }
@@ -43,7 +43,7 @@ namespace UNO
 
             try
             {
-                // Preparar los datos en formato JSON
+                //preparar los datos en formato JSON
                 var datosJugador = new { nombre = usuario };
 
                 string jsonPayload =
@@ -58,7 +58,7 @@ namespace UNO
                 // MODIFICACION:
                 // Todas las computadoras usan la misma API
                 string urlApi =
-                    "http://10.103.151.232:8000/jugadores/registrar";
+                    "http://10.103.150.138:8000/jugadores/registrar";
 
                 HttpResponseMessage response =
                     await client.PostAsync(urlApi, content);
@@ -128,7 +128,7 @@ namespace UNO
             }
         }
 
-        // Clase para interpretar la respuesta JSON de la API
+        //clase para interpretar la respuesta JSON de la API
         public class RespuestaRegistroDto
         {
             public int id_jugador { get; set; }

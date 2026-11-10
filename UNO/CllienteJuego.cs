@@ -16,12 +16,12 @@ namespace UNO
         public string NombreJugador { get; private set; }
         public int NumeroJugador { get; private set; }
 
-        // Datos de la partida recibidos del servidor
+        //datos de la partida recibidos del servidor
         public string[] ManoInicial { get; private set; }
         public string CartaMesa { get; private set; }
         public int TurnoActual { get; private set; }
 
-        // Evento para avisar a MesaUNO que llegaron datos
+        //para avisar a MesaUNO que llegaron datos
         public event Action<string> MensajeRecibido;
 
         public void ConectarAlServidor(string ip, int puerto, string nombre)
@@ -48,13 +48,13 @@ namespace UNO
                     $"[CONECTADO] Conectado como {NombreJugador}"
                 );
 
-                // MODIFICACIÓN:
-                // Iniciar primero el hilo que recibe los mensajes
+                // MODIFICACION:
+                //iniciar primero el hilo que recibe los mensajes
                 Thread hiloEscucha = new Thread(EscucharAlServidor);
                 hiloEscucha.IsBackground = true;
                 hiloEscucha.Start();
 
-                // Identificarse ante el servidor
+                //identificarse ante el servidor
                 EnviarAccion($"CONECTAR|{NombreJugador}");
             }
             catch (Exception e)
@@ -63,7 +63,7 @@ namespace UNO
                     $"No se pudo conectar al servidor: {e.Message}"
                 );
 
-                // Avisar a MesaUNO del error de conexión
+                //avisar a MesaUNO del error de conexión
                 MensajeRecibido?.Invoke("DESCONECTADO");
             }
         }
@@ -130,7 +130,7 @@ namespace UNO
                     int bytesRecibidos =
                         _socketCliente.Receive(_bufferRecibo);
 
-                    // El servidor cerró la conexión
+                    //el servidor cerro la conexión
                     if (bytesRecibidos == 0)
                         break;
 
@@ -145,8 +145,8 @@ namespace UNO
                     string contenido = pendiente.ToString();
                     int posicion;
 
-                    // MODIFICACIÓN:
-                    // Procesar cada mensaje completo separado por \n
+                    // MODIFICACION:
+                    //procesar cada mensaje completo separado por \n
                     while ((posicion = contenido.IndexOf('\n')) >= 0)
                     {
                         string mensaje = contenido
@@ -182,8 +182,8 @@ namespace UNO
             }
             finally
             {
-                // MODIFICACIÓN:
-                // Informar a MesaUNO cuando se pierde la conexión
+                // MODIFICACIoN:
+                //informar a MesaUNO cuando se pierde la conexion
                 if (!desconexionVoluntaria)
                     MensajeRecibido?.Invoke("DESCONECTADO");
             }
@@ -229,7 +229,7 @@ namespace UNO
 
                     case "REINICIO_CONFIRMADO":
 
-                        // Limpiar los datos de la ronda anterior
+                        //limpiar los datos de la ronda anterior
                         ManoInicial = null;
                         CartaMesa = null;
                         TurnoActual = 0;
@@ -411,7 +411,7 @@ namespace UNO
                 return;
             }
 
-            // Una excepción en un suscriptor no debe detener el hilo TCP.
+            //una excepcion en un suscriptor no debe detener el hilo TCP.
             try
             {
                 MensajeRecibido?.Invoke(mensajeRecibido);
@@ -422,8 +422,8 @@ namespace UNO
             }
         }
 
-        // MODIFICACIÓN:
-        // Cerrar la conexión al terminar de utilizar el cliente
+        // MODIFICACIoN:
+        //cerrar la conexion al terminar de utilizar el cliente
         public void Desconectar()
         {
             desconexionVoluntaria = true;
@@ -437,11 +437,11 @@ namespace UNO
             }
             catch (SocketException)
             {
-                // La conexión ya estaba cerrada
+                //la conexion ya estaba cerrada
             }
             catch (ObjectDisposedException)
             {
-                // El socket ya fue liberado
+                //el socket ya fue liberado
             }
         }
     }

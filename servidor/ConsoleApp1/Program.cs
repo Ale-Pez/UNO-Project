@@ -34,13 +34,13 @@ namespace ServidorUNO
         static string cartaRobadaPendiente = "";
         static Random random = new Random();
 
-        // Una sola API y una sola partida para las tres computadoras.
+        //una sola API y una sola partida para las tres computadoras.
         static readonly HttpClient clienteApi = new HttpClient();
         static readonly string urlApi = "http://127.0.0.1:8000";
         static int idPartidaActual = -1;
         static int[] idJugadores = new int[3];
 
-        // Estas llamadas se realizan exclusivamente desde el servidor.
+        //estas llamadas se realizan exclusivamente desde el servidor.
         static string PostApi(string ruta, string json)
         {
             try
@@ -75,7 +75,7 @@ namespace ServidorUNO
 
         static string JsonTexto(string texto)
         {
-            // Escapar cadenas para enviar nombres y movimientos como JSON válido.
+        
             return "\"" + texto.Replace("\\", "\\\\").Replace("\"", "\\\"")
                 .Replace("\r", "\\r").Replace("\n", "\\n") + "\"";
         }
@@ -166,7 +166,7 @@ namespace ServidorUNO
         {
             if (baraja.Count == 0 && descartes.Count > 0)
             {
-                // La carta visible permanece en mesa; se reciclan solo descartes anteriores.
+                //la carta visible permanece en mesa; se reciclan solo descartes anteriores.
                 baraja.AddRange(descartes);
                 descartes.Clear();
                 BarajarCartas();
@@ -393,8 +393,7 @@ namespace ServidorUNO
             EnviarATodos("COLOR_ACTUAL|" + colorActual);
             EnviarCantidades();
 
-            // Conserva la regla original: si juega su última carta sin haber dicho UNO,
-            // recibe dos cartas y pierde el turno. Se aplica también a la robada.
+            // Conserva la regla original: si juega su ultima carta sin haber dicho UNO,recibe dos cartas y pierde el turno. Se aplica tambien a la robada.
             if (mano.Count == 0 && !jugadoresConUNO.Contains(numeroJugador))
             {
                 EnviarATodos("CASTIGO_UNO|" + numeroJugador);
@@ -466,7 +465,7 @@ namespace ServidorUNO
                     if (turnoActual != numeroJugador) { EnviarJugador(numeroJugador, "ERROR|NO_ES_TU_TURNO"); return; }
                     if (jugadorEsperandoDecision != -1) { EnviarJugador(numeroJugador, "ERROR|DECISION_ROBO_PENDIENTE"); return; }
                     if (partes.Length < 4) { EnviarJugador(numeroJugador, "ERROR|FORMATO_CARTA"); return; }
-                    // JUGAR_CARTA|COLOR|TIPO|NUMERO|COLOR_ELEGIDO (último solo comodines)
+                    // JUGAR_CARTA|COLOR|TIPO|NUMERO|COLOR_ELEGIDO (ultimo solo comodines)
                     string carta = partes[1] + "|" + partes[2] + "|" + partes[3];
                     string color = partes.Length >= 5 ? partes[4] : "";
                     JugarCarta(numeroJugador, carta, color, false);

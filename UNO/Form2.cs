@@ -17,7 +17,7 @@ namespace UNO
         {
             InitializeComponent();
 
-            // Mantiene la ventana de menú fija
+            //mantiene la ventana de menu fija
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
         }
@@ -26,7 +26,7 @@ namespace UNO
         {
             string nombreJugador1 = "";
 
-            // Registro del jugador de esta computadora
+            //registro del jugador de esta computadora
             Registro reg1 = new Registro();
             reg1.Text = "Registro de jugador";
 
@@ -52,7 +52,7 @@ namespace UNO
 
             tableroJuego.Show();
 
-            // Oculta el menú principal
+            //oculta el menu principal
             this.Hide();
         }
 

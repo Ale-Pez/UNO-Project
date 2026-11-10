@@ -11,7 +11,7 @@ namespace UNO
     {
         private string ganadorPartida;
 
-        // Constructor que recibe únicamente al ganador y al castigado
+        //constructor que recibe unicamente al ganador y al castigado
         public HistorialPartidas(string nombreGanador, string nombreCastigado)
         {
             InitializeComponent();
@@ -26,7 +26,7 @@ namespace UNO
         private async Task CargarResumenDesdeApiAsync()
         {
 
-            // DISPARADOR DE LA PETICIÓN:
+            // DISPARADOR DE LA PETICION:
             //instanciamos el servicio (apiService) y le damos la URL exacta, en este preciso momento es cuando se manda a llamar la apiservice, 
             // se ejecuta el request web hacia la API, se trae el JSON de la base de datos,y se deserializa (convierte a objetos C#), se ordena y se muestra en ventana de resumen.
             apiService servicioApi = new apiService();
@@ -43,7 +43,7 @@ namespace UNO
 
                 List<JugadorDto> listaJugadores = JsonConvert.DeserializeObject<List<JugadorDto>>(jsonRespuesta);
 
-                // ORDENAMIENTO: Coloca al jugador con más partidas ganadas en primer lugar
+                // ORDENAMIENTO: Coloca al jugador con mas partidas ganadas en primer lugar
                 listaJugadores = listaJugadores.OrderByDescending(j => j.partidas_ganadas).ToList();
 
                 string resumenFormateado = "========================================\r\n";

@@ -14,14 +14,14 @@ namespace UNO
         private ClienteJuego cliente;
         private bool partida_iniciada = false;
 
-        // Conserva al jugador que acaba de quedarse con una carta.
-        // La oportunidad de cantar UNO termina cuando comienza la siguiente acción válida.
+        //conserva al jugador que acaba de quedarse con una carta.
+        //la oportunidad de cantar UNO termina cuando comienza la siguiente acción valida.
         private int jugador_pendiente_uno = -1;
         private bool partida_terminada = false;
-        private bool accion_pendiente = false; // Evita enviar acciones repetidas
+        private bool accion_pendiente = false; //evita enviar acciones repetidas
         private bool esperando_reinicio = false;
 
-        // Evita reconstruir controles cuando el estado visual no cambia.
+        //evita reconstruir controles cuando el estado visual no cambia.
         private string[] manos_dibujadas = new string[3];
         private string carta_mesa_dibujada = null;
         private ColorCarta? color_dibujado = null;
@@ -31,15 +31,15 @@ namespace UNO
         {
             InitializeComponent();
 
-            // Modifica el Text de los GroupBox para que muestren el nombre de cada usuario
+            //modifica el Text de los GroupBox para que muestren el nombre de cada usuario
             this.groupBox1.Text = n1;
             this.groupBox2.Text = n2;
             this.groupBox3.Text = n3;
 
-            // Inicializar partida de UNO
+            //inicializar partida de UNO
             this.director = new LogicaUNO(n1, n2, n3);
 
-            // Creación del Timer (para mensajes emergentes).
+            //creacion del Timer (para mensajes emergentes).
             this.timerAviso = new Timer();
             this.timerAviso.Interval = 2500;
             this.timerAviso.Tick += timerAviso_Tick;
@@ -47,7 +47,7 @@ namespace UNO
             //conexion al servidor
             cliente = new ClienteJuego();
 
-            // Cerrar la conexion TCP cuando se cierre el tablero.
+            //cerrar la conexion TCP cuando se cierre el tablero.
             this.FormClosed += MesaUNO_FormClosed;
 
             IniciarControles();
@@ -71,10 +71,10 @@ namespace UNO
             };
 
             var identificador = this.Handle;
-            cliente.ConectarAlServidor("10.103.151.232", 11111, n1);
+            cliente.ConectarAlServidor("10.103.150.138", 11111, n1);
         }
 
-        // MODIFICACION: liberar la conexion al cerrar MesaUNO.
+        //liberar la conexion al cerrar MesaUNO.
         private void MesaUNO_FormClosed(object sender, FormClosedEventArgs e)
         {
             timerAviso.Stop();
@@ -96,8 +96,6 @@ namespace UNO
             this.lblAvisoTemp.Top = this.lblAvisoTemp.Height + 100;
 
             // EVENTOS
-            // El evento se registra una sola vez abajo.
-
             this.mazo_cartas.Click -= RobarMazoCarta;
             this.mazo_cartas.Click += RobarMazoCarta;
 
@@ -112,7 +110,7 @@ namespace UNO
 
         private void AcomodarControles()
         {
-            // CENTRADO DE BOTÓN REINICIO
+            // CENTRADO DE BOTON REINICIO
             this.boton_reinicio.Left = (this.panel_Superior_GroupBox4.ClientSize.Width - this.boton_reinicio.Width) / 2;
             this.boton_reinicio.Top = 2;
 
@@ -120,7 +118,7 @@ namespace UNO
             this.lblTurno.Left = (this.panel_Superior_GroupBox4.ClientSize.Width - this.lblTurno.Width) / 2;
             this.lblTurno.Top = this.boton_reinicio.Bottom + 2;
 
-            // CENTRADO DE BOTÓN UNO
+            // CENTRADO DE BOTON UNO
             this.boton_uno.Left = (this.panel_Inferior_GroupBox4.ClientSize.Width - this.boton_uno.Width) / 2;
             this.boton_uno.Top = (this.panel_Inferior_GroupBox4.ClientSize.Height - this.boton_uno.Height) / 2;
         }
@@ -136,7 +134,7 @@ namespace UNO
                 Carta carta = this.director.cartas_en_pila.Last();
                 string clave = carta.getColor() + "|" + carta.getTipo() + "|" + carta.getNumero();
 
-                // Solo cambia la imagen si cambió la carta visible.
+                //solo cambia la imagen si cambia la carta visible.
                 if (carta_mesa_dibujada != clave)
                 {
                     PictureBox sprite = ObtenerSpriteCarta(carta);
@@ -165,8 +163,8 @@ namespace UNO
             bool esMiMano = cliente != null && numeroJugador == cliente.NumeroJugador;
             int cantidad = esMiMano ? mano.Count : this.director.ContarCartasServidor(numeroJugador);
 
-            // La clave incluye el contenido y el orden de las cartas propias.
-            // De los demás jugadores solo conocemos la cantidad.
+            //la clave incluye el contenido y el orden de las cartas propias.
+            //de los demás jugadores solo conocemos la cantidad.
             string clave = esMiMano ? "PROPIA|" : "REVERSO|";
             if (esMiMano)
                 foreach (Carta carta in mano)
@@ -177,7 +175,7 @@ namespace UNO
             if (manos_dibujadas[numeroJugador - 1] == clave)
                 return;
 
-            // Evita que el panel muestre los controles mientras se reconstruyen.
+            //evita que el panel muestre los controles mientras se reconstruyen.
             panel.SuspendLayout();
             try
             {
@@ -287,24 +285,23 @@ namespace UNO
         }
 
 
-        // Muestra el mensaje de la etiqueta de avisos temporales.
+        //muestra el mensaje de la etiqueta de avisos temporales.
         private void MostrarAvisoTemporal(string mensaje)
         {
             lblAvisoTemp.Text = mensaje;
             AcomodarControles();
 
-            timerAviso.Stop(); // Si ya había uno ejecutandose lo reinicia.
+            timerAviso.Stop(); //si ya habia uno ejecutandose lo reinicia.
             timerAviso.Start();
         }
 
-        // Evento del timer Aviso que se ejecuta cuando termina para limpiar el mensaje.
         private void timerAviso_Tick(object sender, EventArgs e)
         {
             timerAviso.Stop();
             lblAvisoTemp.Text = "";
         }
 
-        // Evento que controla el juego cuando se hace click en una carta
+        //evento que controla el juego cuando se hace click en una carta
         private void Carta_Click(object sender, EventArgs e)
         {
             if (!this.partida_iniciada) { MessageBox.Show("Esperando a los tres jugadores."); return; }
@@ -338,10 +335,10 @@ namespace UNO
             // NO se modifica la mano, la pila ni el turno aquí.
         }
 
-        //Ahora cada computadora solamente podrá seleccionar las cartas de su jugador, siempre que sea su turno
+        //ahora cada computadora solamente podra seleccionar las cartas de su jugador, siempre que sea su turno
         private bool EstabaEnMazo(PictureBox pb)
         {
-            // Verificar que sea el turno de este cliente
+            // verificar que sea el turno de este cliente
             if (this.director.turno_actual != cliente.NumeroJugador)
                 return false;
 
@@ -362,8 +359,7 @@ namespace UNO
 
         private void TerminarAccion(int jugador_que_jugo)
         {
-            // La jugada ya fue confirmada por el servidor.
-            // El ganador solo se determina cuando llega GANADOR.
+            //la jugada ya fue confirmada por el servidor, el ganador solo se determina cuando llega GANADOR.
             ActualizarInterfaz();
         }
 
@@ -389,7 +385,7 @@ namespace UNO
             if (!this.partida_iniciada || this.jugador_pendiente_uno == -1 || this.partida_terminada) return;
             if (this.jugador_pendiente_uno != cliente.NumeroJugador) return;
             cliente.EnviarAccion("UNO");
-            // Esperar JUGADOR_UNO para ocultar el botón.
+            //esperar JUGADOR_UNO para ocultar el boton.
         }
 
         private Jugador ObtenerJugador(int numero_jugador)
@@ -410,12 +406,12 @@ namespace UNO
             }
             this.accion_pendiente = true;
             cliente.EnviarAccion("ROBAR_CARTA");
-            // El servidor enviará CARTA_ROBADA y, si es válida, DECIDIR_ROBO.
+            //el servidor enviara CARTA_ROBADA y, si es valida, DECIDIR_ROBO.
         }
 
         private Carta RobarCartaDisponible()
         {
-            // El servidor es el único que puede sacar cartas del mazo.
+            //el servidor es el unico que puede sacar cartas del mazo.
             return null;
         }
 
@@ -480,7 +476,7 @@ namespace UNO
         }
 
 
-        // Ventana de selección de color trasladada de LogicaUNO a la interfaz.
+        //ventana de seleccion de color trasladada de LogicaUNO a la interfaz.
         private ColorCarta SolicitarEleccionColor()
         {
             ColorCarta colorElegido = ColorCarta.ROJO;
@@ -581,13 +577,13 @@ namespace UNO
 
         private void ReiniciarJuego(bool mostrarMensaje)
         {
-            // Solo el servidor puede iniciar una ronda para los tres jugadores.
+            //solo el servidor puede iniciar una ronda para los tres jugadores.
             if (this.esperando_reinicio) return;
             this.esperando_reinicio = true;
             cliente.EnviarAccion("REINICIAR");
         }
 
-        // Botón para reinicio de juego
+        //boton para reinicio de juego
         private void button1_Click(object sender, EventArgs e)
         {
             if (this.partida_terminada)
@@ -678,7 +674,7 @@ namespace UNO
                         this.director.jugador1.GetNombre(),
                         this.director.jugador2.GetNombre(),
                         this.director.jugador3.GetNombre());
-                    // Esperar los datos de la nueva ronda antes de dibujar.
+                    //esperar los datos de la nueva ronda antes de dibujar.
                     break;
 
                 case "MANO_INICIAL":
@@ -781,7 +777,7 @@ namespace UNO
                     this.accion_pendiente = false;
                     this.jugador_pendiente_uno = -1;
                     ActualizarInterfaz();
-                    // Se espera a que lleguen las cantidades finales antes de mostrar Form3.
+                    //se espera a que lleguen las cantidades finales antes de mostrar Form3.
                     ImprimirResultados(ObtenerNombreGanador());
                     break;
 

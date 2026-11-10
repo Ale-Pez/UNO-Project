@@ -16,7 +16,7 @@ namespace UNO
         private bool jugada_desde_mazo = false;
         private LlamadaBD llamada;
 
-        // El servidor es quien reparte, valida, avanza turnos y decide el ganador.
+        //el servidor es quien reparte, valida, avanza turnos y decide el ganador.
         private int numero_jugador_local = 0;
         private int[] cantidad_cartas = new int[3];
         public bool partida_terminada = false;
@@ -29,7 +29,7 @@ namespace UNO
 
         public void ReiniciarRonda(string nickname1, string nickname2, string nickname3, bool repartir = false)
         {
-            // No repartir aquí: las cartas llegarán en MANO_INICIAL.
+            // No repartir aquí: las cartas llegaran en MANO_INICIAL.
             baraja = null;
             cartas_en_pila = new List<Carta>();
             jugador1 = new Jugador(nickname1);
@@ -61,7 +61,7 @@ namespace UNO
 
         public void RecibirNombresServidor(string nickname1, string nickname2, string nickname3)
         {
-            // Los nombres se reciben del servidor, en orden de conexión.
+            //los nombres se reciben del servidor, en orden de conexion.
             jugador1 = new Jugador(nickname1);
             jugador2 = new Jugador(nickname2);
             jugador3 = new Jugador(nickname3);
@@ -126,7 +126,7 @@ namespace UNO
         {
             if (carta_jugada == null || carta_apilada == null) return false;
 
-            // El servidor comprobará las restricciones adicionales del +4.
+            //el servidor comprobara las restricciones adicionales del +4.
             if (carta_jugada.getTipo() == TipoCarta.COMODIN ||
                 carta_jugada.getTipo() == TipoCarta.MASCUATRO)
                 return true;
@@ -171,8 +171,8 @@ namespace UNO
             }
 
             cartas_en_pila.Add(carta_jugada);
-            // No se cambia color_actual aquí: el servidor envía COLOR_ACTUAL.
-            // No se avanza el turno aquí: el servidor envía TURNO.
+            //no se cambia color_actual aquí: el servidor envia COLOR_ACTUAL.
+            //no se avanza el turno aquí: el servidor envia TURNO.
         }
 
         public void RecibirCartaRobadaServidor(int numeroJugador, Carta carta)
@@ -207,8 +207,7 @@ namespace UNO
             partida_terminada = true;
         }
 
-        // Se conservan los métodos anteriores, pero las acciones reales
-        // ahora se ejecutan y confirman exclusivamente en ServidorUNO.
+        //se conservan los metodos anteriores, pero las acciones reales ahora se ejecutan y confirman exclusivamente en ServidorUNO.
         public void RealizarJugada(Carta carta_jugada)
         {
         }
